@@ -37,12 +37,25 @@ def get_search_results(search_url, parameters, all_results=False):
     search_results = requests.get(search, params=parameters).json()
     # Get all results as IIIF
     if all_results and parameters.get('as')=='iiif':
-        return get_all_iiif(search_results)
-    if all_results and parameters.get('as')=='opensearch':
-        return get_all_search_results(search_results)
+        search_results = get_all_iiif(search_results)
+    elif all_results:
+        search_results = get_all_search_results(search_results)
+    return search_results
 
 def get_work_by_id(api_base_url, identifier, parameters):
     """returns a work as IIIF or json""" 
-    return requests.get(urljoin(api_base_url, "works/"+identifier), params=parameters)
+    return requests.get(urljoin(api_base_url, "works/"+identifier), params=parameters).json()
 
+def get_collection_by_id(api_base_url, identifier, parameters, all_results=False):
+    """returns a collection as IIIF or json"""
+    results = requests.get(urljoin(api_base_url, "collections/"+identifier), params=parameters).json()
+    if all_results and parameters.get('as')=='iiif':
+        results = get_all_iiif(results) 
+    return results 
+
+def aggregate_by(search_url, query, agg):
+    """ Takes a base url and a query string query and aggs on a sing agg field"""
+
+# TODO add formatters for csv
+# TODO Add CSV output
 
