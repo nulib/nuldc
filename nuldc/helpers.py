@@ -13,6 +13,8 @@ def get_all_iiif(start_manifest):
     if manifest.get('items')[-1].get('type') == 'Collection':
         # pop off the next
         next = manifest['items'].pop().get('id')
+    else: 
+        next = None
     while next:
         next_results = requests.get(next).json()
         if next_results.get('items')[-1].get('type') == 'Collection':
