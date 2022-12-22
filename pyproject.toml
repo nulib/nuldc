@@ -12,6 +12,8 @@ requests = "^2.28.1"
 unicodecsv = "^0.14.1"
 docopt = "^0.6.2"
 
+[tool.poetry.scripts]
+nuldc = 'nuldc.commandline:main'
 
 [build-system]
 requires = ["poetry-core"]

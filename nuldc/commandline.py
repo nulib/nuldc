@@ -30,7 +30,7 @@ def main():
     params = {"as":args.get("--as"), "size":"250"}
     # work 
     if args['works']:
-        data = helpers.get_work_by_id(url, args.get("<id>"), params)
+        data = helpers.get_work_by_id(api_base_url, args.get("<id>"), params)
      
     # collection
     if args['collections']:
