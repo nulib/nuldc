@@ -1,8 +1,9 @@
 """NULDC
 
 USAGE:
-    nuldc works <id> [--as=<format>] 
-    nuldc collections <id> [--as=<format>]
+    nuldc works <id> [--as <format>] 
+    nuldc collections <id> [--as <format>]
+    nuldc collections <id> [--as <format>] [--all]
     nuldc search <query_string> [--as <format>] [--all]
     nuldc search <query_string> [--csv <outfile>] [--all]
     nuldc search <query_string> [--csv <outfile> --fields <fields>] [--all]

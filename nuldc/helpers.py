@@ -79,14 +79,28 @@ def save_as_csv(headers, values, output_file):
         for row in values:
             writer.writerow(row)
 
+def get_nested_field(field, source_dict):
+    """Handles nested fields using dotted notation from the cli fields and flattens nested data"""
+    #see if there's a dot notation
+    field_metadata = source_dict
+    for f in field.split('.'):
+        if isinstance(field_metadata, dict):
+            field_metadata = field_metadata.get(f)
+        elif isinstance(field_metadata, list) and all(isinstance(d, dict) for d in field_metadata):
+            field_metadata = [i.get(f) for i in field_metadata]
+    return field_metadata
+
 def sort_fields_and_values(opensearch_results, fields=[]):
-    """takes opensearch results and returns keys and values sorted OR an explicit set of fields"""
+    """takes opensearch results and returns keys and values sorted OR an explicit set of fields
+    It can handle infintely nested dot notation for digging deeper into metadta. 
+
+    """
 
     data = opensearch_results.get('data')
 
     if fields:
-        fields = fields
-        values = [[i.get(f) for f in fields] for i in data]
+        # values = [[i.get(f) for f in fields] for i in data]
+        values = [[normalize_format(get_nested_field(f, i)) for f in fields] for i in data]
 
     else:
         values = [[normalize_format(field) 
