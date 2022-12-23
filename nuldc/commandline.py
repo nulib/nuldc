@@ -20,9 +20,11 @@ ARGUMENTS:
         iiif
 """
 
+
 from docopt import docopt
 from nuldc import helpers
 import json
+
 
 def main():
     args = docopt(__doc__)
@@ -58,6 +60,7 @@ def main():
             data = {"message":"saved csv to :"+args.get('--csv')}
 
     print(json.dumps(data))
+
 
 if __name__=='__main__':
     main()
