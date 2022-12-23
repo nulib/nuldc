@@ -9,9 +9,14 @@ api_base_url = "https://dcapi.rdc.library.northwestern.edu/api/v2"
 def get_all_iiif(start_manifest, total_pages):
     """ takes items from a IIIF manifest and returns the next_page 
     collection and items"""
-
+    
+    # check to see if there's too many pages, bail with message
+    if total_pages > 200:
+        return {'message': 
+                f'{total_pages} pages! That is a lot of pages. Let\'s keep it under 200. Refine your search'}
+        
     manifest = start_manifest 
-
+    
     if manifest.get('items')[-1].get('type') == 'Collection':
         # pop off the next
         next = manifest['items'].pop().get('id')
@@ -22,7 +27,6 @@ def get_all_iiif(start_manifest, total_pages):
 
     while next:
         next_results = requests.get(next).json()
-        
         if next_results.get('items')[-1].get('type') == 'Collection':
             next = next_results['items'].pop().get('id')
         else:
@@ -36,10 +40,16 @@ def get_all_iiif(start_manifest, total_pages):
 def get_all_search_results(start_results):
     """Pages through json responses and grabs the next results returns them all together"""
     results = start_results
+    total_pages = results['pagination']['total_pages'] 
     next = results.get('pagination').get('next_url')
-    
+
+    # stop if there's too many results and bail
+    if total_pages > 200:
+        return {'message': 
+                f'{total_pages} pages! That is a lot of pages. Let\'s keep it under 200. Refine your search'}
+      
     # add a progress bar when you get a lot of results
-    pbar = tqdm.tqdm(total=results['pagination']['total_pages'])
+    pbar = tqdm.tqdm(total=total_pages)
     
     #loop through the results
     while next:
@@ -48,6 +58,7 @@ def get_all_search_results(start_results):
         next = next_results.get('pagination').get('next_url')
         pbar.update(1)
     pbar.close()
+
     return results 
 
 def get_search_results(api_base_url, parameters, all_results=False):
