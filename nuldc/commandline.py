@@ -26,13 +26,11 @@ import json
 
 def main():
     args = docopt(__doc__)
-     
-    api_base_url = "https://dcapi.rdc.library.northwestern.edu/api/v2/"
+    api_base_url = "https://dcapi.rdc.library.northwestern.edu/api/v2"
     params = {"as":args.get("--as"), "size":"250"}
     # work 
     if args['works']:
         data = helpers.get_work_by_id(api_base_url, args.get("<id>"), params)
-     
     # collection
     if args['collections']:
         data = helpers.get_collection_by_id(api_base_url, 
