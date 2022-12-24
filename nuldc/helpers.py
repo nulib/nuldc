@@ -46,7 +46,7 @@ def get_all_search_results(start_results, page_limit):
     next = results.get('pagination').get('next_url')
 
     # stop if there's too many results and bail
-    if total_pages > 200:
+    if total_pages > page_limit:
         return {'message': 
                 f'{total_pages} pages! Let\'s keep it under {total_pages}. Refine your search'}
       
