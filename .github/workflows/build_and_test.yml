@@ -17,5 +17,5 @@ jobs:
       - name: install deps
         run: pip install ./
       - name: run tests
-        run: poetry run pytest
+        run: run pytest
 
