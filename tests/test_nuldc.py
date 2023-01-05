@@ -74,12 +74,12 @@ def mock_dcapi_iiif():
     return _mock_dcapi_iiif
 
 
-def test_get_all_iiif(requests_mock,mock_dcapi_iiif):
-    #TODO
+def test_get_all_iiif(requests_mock, mock_dcapi_iiif):
+    # TODO
     p1 = mock_dcapi_iiif("http://test.com/next")
     p2 = mock_dcapi_iiif("")
     # requests_mock.get('http://test.com/next', json=p2)
-    # result = get_all_iiif(p1,2,2) 
+    # result = get_all_iiif(p1,2,2)
     pass
 
 
@@ -135,7 +135,11 @@ def test_get_nested_field(mock_dcapi):
     parent = get_nested_field('parent', data)
     child_assert = data['parent']['child']
     child = get_nested_field('parent.child', data)
+    no_field = get_nested_field('parent.child.nothing', data)
     # to green this up make if,elif, else: none
     # no_result = get_nested_field('parent.child.nothing',
     #                            mock_dcapi_p1['data'][0])
-    assert all([child == child_assert, parent == parent_assert])
+    assert all([child == child_assert,
+                parent == parent_assert,
+                no_field == "no field named nothing"]
+               )

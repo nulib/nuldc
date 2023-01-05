@@ -149,9 +149,13 @@ def get_nested_field(field, source_dict):
     for f in field.split('.'):
         if isinstance(field_metadata, dict):
             field_metadata = field_metadata.get(f)
-        if isinstance(field_metadata, list) and all(
+        elif isinstance(field_metadata, list) and all(
                 isinstance(d, dict) for d in field_metadata):
             field_metadata = [i.get(f) for i in field_metadata]
+        else:
+            #it's not a dict or a list of dicts, so there's no
+            # field under it
+            field_metadata = f"no field named {f}"
     return field_metadata
 
 
