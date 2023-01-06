@@ -65,6 +65,46 @@ def get_all_search_results(start_results, page_limit):
     return results
 
 
+def get_collection_by_id(api_base_url, identifier,
+                         parameters, all_results=False):
+    """returns a collection as IIIF or json"""
+
+    url = f"{api_base_url}/collections/{identifier}"
+    results = requests.get(url, params=parameters).json()
+
+    if all_results and parameters.get('as') == 'iiif':
+        # fire off a search for total pagecount this powers the progressbar
+        count_params = parameters
+        count_params['as'] = 'opensearch'
+        count_params['query'] = f'collection.id:{identifier}'
+        url = f"{api_base_url}/search"
+        total_pages = requests.get(url, count_params).json()[
+            'pagination']['total_pages']
+        results = get_all_iiif(results, total_pages)
+
+    return results
+
+
+def get_nested_field(field, source_dict):
+    """Handles nested fields using dotted notation from the cli fields and
+    flattens nested data"""
+
+    # see if there's a dot notation
+    field_metadata = source_dict
+
+    for f in field.split('.'):
+        if isinstance(field_metadata, dict):
+            field_metadata = field_metadata.get(f)
+        elif isinstance(field_metadata, list) and all(
+                isinstance(d, dict) for d in field_metadata):
+            field_metadata = [i.get(f) for i in field_metadata]
+        else:
+            # it's not a dict or a list of dicts, so there's no
+            # field under it
+            field_metadata = f"no field named {f}"
+    return field_metadata
+
+
 def get_search_results(api_base_url, parameters,
                        all_results=False, page_limit=200):
     """iterates through and grabs the search results. Sets a default pagelimit
@@ -93,26 +133,6 @@ def get_work_by_id(api_base_url, identifier, parameters):
     return requests.get(url, params=parameters).json()
 
 
-def get_collection_by_id(api_base_url, identifier,
-                         parameters, all_results=False):
-    """returns a collection as IIIF or json"""
-
-    url = f"{api_base_url}/collections/{identifier}"
-    results = requests.get(url, params=parameters).json()
-
-    if all_results and parameters.get('as') == 'iiif':
-        # fire off a search for total pagecount this powers the progressbar
-        count_params = parameters
-        count_params['as'] = 'opensearch'
-        count_params['query'] = f'collection.id:{identifier}'
-        url = f"{api_base_url}/search"
-        total_pages = requests.get(url, count_params).json()[
-            'pagination']['total_pages']
-        results = get_all_iiif(results, total_pages)
-
-    return results
-
-
 def normalize_format(field):
     """Normalizes the fields for CSV output. This will favor label"""
 
@@ -137,26 +157,6 @@ def save_as_csv(headers, values, output_file):
         writer.writerow(headers)
         for row in values:
             writer.writerow(row)
-
-
-def get_nested_field(field, source_dict):
-    """Handles nested fields using dotted notation from the cli fields and
-    flattens nested data"""
-
-    # see if there's a dot notation
-    field_metadata = source_dict
-
-    for f in field.split('.'):
-        if isinstance(field_metadata, dict):
-            field_metadata = field_metadata.get(f)
-        elif isinstance(field_metadata, list) and all(
-                isinstance(d, dict) for d in field_metadata):
-            field_metadata = [i.get(f) for i in field_metadata]
-        else:
-            #it's not a dict or a list of dicts, so there's no
-            # field under it
-            field_metadata = f"no field named {f}"
-    return field_metadata
 
 
 def sort_fields_and_values(opensearch_results, fields=[]):

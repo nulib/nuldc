@@ -2,6 +2,7 @@ import pytest
 from nuldc.helpers import (get_search_results,
                            get_all_search_results,
                            get_all_iiif,
+                           get_collection_by_id,
                            get_nested_field,
                            get_work_by_id,
                            normalize_format,
@@ -50,45 +51,44 @@ def mock_dcapi_iiif():
     Pass in a 'next_url' if you want to fake a next page, otherwise pass
     in ''"""
 
-    def _mock_dcapi_iiif(next_url):
+    def _mock_dcapi_iiif():
+
         data = {
-            "data": [
-                {"id": "1",
-                 "title": "1 title",
-                 "parent": {"child": "child value1"}},
-                {"id": "2",
-                 "title": "2 title",
-                 "parent": {'child': 'child value2'}}],
-            "pagination": {
-                "query_url": "https://fake.com",
-                "current_page": 1,
-                "limit": "10",
-                "offset": 0,
-                "total_hits": 4,
-                "total_pages": 2,
-                "next_url": next_url
-            },
-            "info": {}
+            "@context": "http://iiif.io/api/presentation/3/context.json",
+            "id": "https://example.org/iiif/paged-1.json",
+            "type": "Collection",
+            "label": {"none": ["Paged Collection - Page 1"]},
+            "items": [
+                    {
+                        "id": "https://example.org/iiif/result-1.json",
+                        "type": "Manifest",
+                        "label": {"none": ["Paged Collection - Result 1"]}
+                    },
+                {
+                        "id": "https://example.org/iiif/result-2.json",
+                        "type": "Manifest",
+                        "label": {"none": ["Paged Collection - Result 2"]}
+                    },
+                {
+                        "id": "https://example.org/iiif/paged-2.json",
+                        "type": "Collection",
+                        "label": {"none": ["Paged Collection - Page 2"]}
+                    }
+            ]
         }
         return data
     return _mock_dcapi_iiif
 
 
 def test_get_all_iiif(requests_mock, mock_dcapi_iiif):
-    # TODO
-    p1 = mock_dcapi_iiif("http://test.com/next")
-    p2 = mock_dcapi_iiif("")
-    # requests_mock.get('http://test.com/next', json=p2)
-    # result = get_all_iiif(p1,2,2)
-    pass
-
-
-def test_get_search_results(requests_mock, mock_dcapi):
-    requests_mock.get(
-        'http://test.com/search',
-        json=mock_dcapi("http://test.com/next"))
-    single_result = get_search_results('http://test.com', {"query": "test"})
-    assert len(single_result['data']) == 2
+    p1 = mock_dcapi_iiif()
+    p2 = mock_dcapi_iiif()
+    # remove the collection ref and leave two results
+    p2['items'].pop()
+    requests_mock.get("https://example.org/iiif/paged-2.json", json=p2)
+    result = get_all_iiif(p1, 2, 2)
+    assert all([len(result['items']) == 4,
+                '"type": "Collection"' not in str(result)])
 
 
 def test_get_all_search_results(requests_mock, mock_dcapi):
@@ -99,11 +99,48 @@ def test_get_all_search_results(requests_mock, mock_dcapi):
     assert len(result['data']) == 4
 
 
+def test_get_nested_field(mock_dcapi):
+    # test grab a nested field
+    data = mock_dcapi("")['data'][0]
+    parent_assert = data['parent']
+    parent = get_nested_field('parent', data)
+    child_assert = data['parent']['child']
+    child = get_nested_field('parent.child', data)
+    no_field = get_nested_field('parent.child.nothing', data)
+    # to green this up make if,elif, else: none
+    # no_result = get_nested_field('parent.child.nothing',
+    #                            mock_dcapi_p1['data'][0])
+    assert all([child == child_assert,
+                parent == parent_assert,
+                no_field == "no field named nothing"]
+               )
+
+
+def test_get_search_results(requests_mock, mock_dcapi):
+    requests_mock.get(
+        'http://test.com/search',
+        json=mock_dcapi("http://test.com/next"))
+    single_result = get_search_results('http://test.com', {"query": "test"})
+    assert len(single_result['data']) == 2
+
+
 def test_get_work_by_id(requests_mock):
     # Make sure it builds the style url and gets it
     requests_mock.get("http://test.com/works/1234", json={"data": "work"})
     work = get_work_by_id("http://test.com", "1234", {"as": "opensearch"})
     assert work['data'] == 'work'
+
+
+def test_get_collection_by_id(requests_mock):
+    # Make sure it builds the style url and gets it
+
+    requests_mock.get("http://test.com/collections/1234",
+                      json={"data": "collection"})
+    work = get_collection_by_id("http://test.com",
+                                "1234",
+                                {"as": "opensearch"})
+
+    assert work['data'] == 'collection'
 
 
 def test_normalize_format(mock_dcapi):
@@ -125,21 +162,4 @@ def test_sort_fields_and_values(mock_dcapi):
                 len(some_values[0]) == 2,
                 "parent" in all_fields,
                 "parent" not in some_fields]
-               )
-
-
-def test_get_nested_field(mock_dcapi):
-    # test grab a nested field
-    data = mock_dcapi("")['data'][0]
-    parent_assert = data['parent']
-    parent = get_nested_field('parent', data)
-    child_assert = data['parent']['child']
-    child = get_nested_field('parent.child', data)
-    no_field = get_nested_field('parent.child.nothing', data)
-    # to green this up make if,elif, else: none
-    # no_result = get_nested_field('parent.child.nothing',
-    #                            mock_dcapi_p1['data'][0])
-    assert all([child == child_assert,
-                parent == parent_assert,
-                no_field == "no field named nothing"]
                )
