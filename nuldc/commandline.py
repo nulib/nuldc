@@ -1,19 +1,17 @@
 """NULDC
 
 USAGE:
-    nuldc works <id> [--as <format>]
-    nuldc collections <id> [--as <format>]
-    nuldc collections <id> [--as <format>] [--all]
-    nuldc search <query_string> [--as <format>] [--all]
-    nuldc search <query_string> [--csv <outfile>] [--all]
-    nuldc search <query_string> [--csv <outfile> --fields <fields>] [--all]
+    nuldc works <id> [--as=<format>]
+    nuldc collections <id> [--as=<format> --all] 
+    nuldc search <query> [--model=<model>] [--as=<format>] [--all] 
+    nuldc csv <query> [--fields=<fields>] [--all] <outfile>
 
 OPTIONS:
-    --as <format>       get results as [default: opensearch]
-    --all               get all records from search
-    --csv <outfile>     output to CSV, requied outfile
-    --fields <fields>   optional set of fields,e.g id,ark,test defaults to all
-    -h --help           Show this screen
+    --as=<format>      get results as [default: opensearch]
+    --model=<model>    search model (works,collections,filesets) [default: works]
+    --all              get all records from search
+    --fields=<fields>  optional set of fields,e.g id,ark,test defaults to all
+    -h --help          Show this screen
 
 ARGUMENTS:
     as: opensearch
@@ -24,6 +22,7 @@ ARGUMENTS:
 from docopt import docopt
 from nuldc import helpers
 import json
+import sys
 
 
 def main():
@@ -38,28 +37,29 @@ def main():
         data = helpers.get_collection_by_id(api_base_url,
                                             args.get("<id>"),
                                             params,
-                                            all_results=args.get("--all"))
-    # search
-    if args['search']:
-        params = {"query": args.get('<query_string>'),
+                                            all_results=args.get("--all-records"))
+    # search and csv use the same helper, grab data
+    if args["search"] or args["csv"]:
+
+        params = {"query": args.get("<query>"),
                   "as": args.get("--as"),
                   "size": "250"}
-
+        # get the data from the search results helper
         data = helpers.get_search_results(api_base_url,
+                                          args["--model"],
                                           params,
                                           all_results=args.get("--all"))
-
-        if args['--csv']:
-            if args.get('--fields'):
-                fields = args.get('--fields').split(',')
-            else:
-                fields = args.get('--fields')
-
-            headers, values = helpers.sort_fields_and_values(data, fields)
-            helpers.save_as_csv(headers, values, args['--csv'])
-            data = {"message": "saved csv to :" + args.get('--csv')}
-
-    print(json.dumps(data))
+    # if it's csv pipe the data out and return a nice message
+    if args["csv"]:
+        fields = args.get("--fields")
+        if fields:
+            fields = fields.split(",")
+        headers, values = helpers.sort_fields_and_values(data, fields)
+        helpers.save_as_csv(headers, values, args['<outfile>'])
+        data = {"message": "saved csv to :" + args['<outfile>']}
+    
+    # if there's a user message, print it otherwise dump the data
+    print(data.get("message") or json.dumps(data))
 
 
 if __name__ == '__main__':

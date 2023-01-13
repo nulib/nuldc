@@ -105,12 +105,12 @@ def get_nested_field(field, source_dict):
     return field_metadata
 
 
-def get_search_results(api_base_url, parameters,
+def get_search_results(api_base_url, model, parameters,
                        all_results=False, page_limit=200):
     """iterates through and grabs the search results. Sets a default pagelimit
     to 200"""
 
-    url = f"{api_base_url}/search"
+    url = f"{api_base_url}/search/{model}"
     search_results = requests.get(url, params=parameters).json()
 
     # Get all results as IIIF
@@ -175,7 +175,10 @@ def sort_fields_and_values(opensearch_results, fields=[]):
         values = [[normalize_format(field)
                   for field in dict(sorted(row.items())).values()]
                   for row in data]
-        fields = list(sorted(data[0].keys()))
+        if data:
+            fields = list(sorted(data[0].keys()))
+        else:
+            fields =["no results"]
 
     return fields, values
 

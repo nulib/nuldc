@@ -118,9 +118,9 @@ def test_get_nested_field(mock_dcapi):
 
 def test_get_search_results(requests_mock, mock_dcapi):
     requests_mock.get(
-        'http://test.com/search',
+        'http://test.com/search/works',
         json=mock_dcapi("http://test.com/next"))
-    single_result = get_search_results('http://test.com', {"query": "test"})
+    single_result = get_search_results('http://test.com','works', {"query": "test"})
     assert len(single_result['data']) == 2
 
 

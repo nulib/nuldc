@@ -10,25 +10,23 @@ A simple CLI for consuming [Northwestern University Libraries Digital Collection
 `pip install git+https://github.com/nulib/nuldc/`
 
 
-```bash
-nuldc --help
+```
+❯ nuldc --help
 
 NULDC
 
 USAGE:
-    nuldc works <id> [--as <format>]
-    nuldc collections <id> [--as <format>]
-    nuldc collections <id> [--as <format>] [--all]
-    nuldc search <query_string> [--as <format>] [--all]
-    nuldc search <query_string> [--csv <outfile>] [--all]
-    nuldc search <query_string> [--csv <outfile> --fields <fields>] [--all]
+    nuldc works <id> [--as=<format>]
+    nuldc collections <id> [--as=<format> --all]
+    nuldc search <query> [--model=<model>] [--as=<format>] [--all]
+    nuldc csv <query> [--fields=<fields>] [--all] <outfile>
 
 OPTIONS:
-    --as <format>       get results as [default: opensearch]
-    --all               get all records from search
-    --csv <outfile>     output to CSV, requied outfile
-    --fields <fields>   optional set of fields,e.g id,ark,test defaults to all
-    -h --help           Show this screen
+    --as=<format>      get results as [default: opensearch]
+    --model=<model>    search model (works,collections,filesets) [default: works]
+    --all              get all records from search
+    --fields=<fields>  optional set of fields,e.g id,ark,test defaults to all
+    -h --help          Show this screen
 
 ARGUMENTS:
     as: opensearch
@@ -63,36 +61,36 @@ Get the whole collection as IIIF, stitching together all the pages
 
 Simple search
 
-`nuldc search 'berkeley AND guitars'`
+`nuldc search "berkeley AND guitars"`
 
 Page through all the results and return one big list of items (limit 200 pages)
 
-`nuldc search 'trains AND chicago' --all`
+`nuldc search "trains AND chicago" --all`
 
 as iiif
 
-`nuldc search 'trains AND chicago' --as iiif --all`
+`nuldc search "trains AND chicago" --as iiif --all`
 
 ### Save to CSV
 
 Dumping to CSV is simple. By default it dumps all the fields that are "label". If you need to dig into
 specific fields you can do that as well. 
 
-`nuldc search 'trains AND chicago' --all --csv example.csv`
+`nuldc csv "trains AND chicago" --all example.csv`
 
 Let's grab just a few fields. 
 
-`nuldc search 'trains AND chicago' --all --fields id,title,ark --csv example_just_a_couple.csv`
+`nuldc csv "trains AND chicago" --all --fields id,title,ark example.csv`
 
 It also supports "dot" notation for getting into nested, special purpose fields.
 
-`nuldc search 'berkeley AND guitars' --all --fields id,title,subject.id --csv example_dotted.csv`
+`nuldc csv "trains AND chicago" --all --fields id,title,ark,subject.id example.csv`
 
-### Works great with jq!
+### Pipeable and Works great with jq!
 
 All of this is pipe-able too, so if you want to do further analysis with JQ or pipe data through some other
 processing pipeline, go for it! For instance, let's grab just a coupld of fields from the json and reformat it into 
 a simplified shape.
 
-`nuldc search 'berkeley AND guitars' --all | jq -r '.data[] | [.title,.id]`
+`nuldc search "berkeley AND guitars" --all | jq -r '.data[] | [.title,.id]`
 
