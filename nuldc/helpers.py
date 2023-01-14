@@ -178,7 +178,7 @@ def sort_fields_and_values(opensearch_results, fields=[]):
         if data:
             fields = list(sorted(data[0].keys()))
         else:
-            fields =["no results"]
+            fields = ["no results"]
 
     return fields, values
 

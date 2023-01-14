@@ -68,12 +68,12 @@ def mock_dcapi_iiif():
                         "id": "https://example.org/iiif/result-2.json",
                         "type": "Manifest",
                         "label": {"none": ["Paged Collection - Result 2"]}
-                    },
+                        },
                 {
                         "id": "https://example.org/iiif/paged-2.json",
                         "type": "Collection",
                         "label": {"none": ["Paged Collection - Page 2"]}
-                    }
+                        }
             ]
         }
         return data
@@ -117,10 +117,12 @@ def test_get_nested_field(mock_dcapi):
 
 
 def test_get_search_results(requests_mock, mock_dcapi):
-    requests_mock.get(
-        'http://test.com/search/works',
-        json=mock_dcapi("http://test.com/next"))
-    single_result = get_search_results('http://test.com','works', {"query": "test"})
+    requests_mock.get('http://test.com/search/works',
+                      json=mock_dcapi("http://test.com/next"))
+
+    single_result = get_search_results('http://test.com',
+                                       'works',
+                                       {"query": "test"})
     assert len(single_result['data']) == 2
 
 
