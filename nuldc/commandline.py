@@ -2,8 +2,8 @@
 
 USAGE:
     nuldc works <id> [--as=<format>]
-    nuldc collections <id> [--as=<format> --all] 
-    nuldc search <query> [--model=<model>] [--as=<format>] [--all] 
+    nuldc collections <id> [--as=<format> --all]
+    nuldc search <query> [--model=<model>] [--as=<format>] [--all]
     nuldc csv <query> [--fields=<fields>] [--all] <outfile>
 
 OPTIONS:
@@ -22,7 +22,6 @@ ARGUMENTS:
 from docopt import docopt
 from nuldc import helpers
 import json
-import sys
 
 
 def main():
@@ -37,7 +36,8 @@ def main():
         data = helpers.get_collection_by_id(api_base_url,
                                             args.get("<id>"),
                                             params,
-                                            all_results=args.get("--all-records"))
+                                            all_results=args.get(
+                                                "--all-records"))
     # search and csv use the same helper, grab data
     if args["search"] or args["csv"]:
 
@@ -57,7 +57,7 @@ def main():
         headers, values = helpers.sort_fields_and_values(data, fields)
         helpers.save_as_csv(headers, values, args['<outfile>'])
         data = {"message": "saved csv to :" + args['<outfile>']}
-    
+
     # if there's a user message, print it otherwise dump the data
     print(data.get("message") or json.dumps(data))
 
