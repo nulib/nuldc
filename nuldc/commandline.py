@@ -33,8 +33,11 @@ def main():
         data = helpers.get_work_by_id(api_base_url, args.get("<id>"), params)
     # collection
     if args['collections']:
-        data = helpers.get_collection_by_id(api_base_url, args.get(
-            "<id>"), params, all_results=args.get("--all-records"))
+        data = helpers.get_collection_by_id(api_base_url,
+                                            args.get("<id>"),
+                                            params,
+                                            all_results=args.get(
+                                                "--all-records"))
     # search and csv use the same helper, grab data
     if args["search"] or args["csv"]:
 
