@@ -27,7 +27,7 @@ import sys
 
 def main():
     args = docopt(__doc__)
-    api_base_url = "https://dcapi.rdc.library.northwestern.edu/api/v2"
+    api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
     params = {"as": args.get("--as"), "size": "250"}
     # work
     if args['works']:

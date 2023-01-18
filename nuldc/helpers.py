@@ -3,7 +3,7 @@ import unicodecsv as csv
 import tqdm
 
 
-api_base_url = "https://dcapi.rdc.library.northwestern.edu/api/v2"
+api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
 
 
 def get_all_iiif(start_manifest, total_pages, page_limit):
