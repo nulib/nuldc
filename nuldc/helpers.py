@@ -1,7 +1,7 @@
 import requests
 import unicodecsv as csv
 import tqdm
-
+import dicttoxml
 
 api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
 
@@ -157,6 +157,14 @@ def save_as_csv(headers, values, output_file):
         writer.writerow(headers)
         for row in values:
             writer.writerow(row)
+
+
+def save_xml(data, output_file):
+    """takes results as a list of dicts and writes them out to xml"""
+
+    xml = dicttoxml.dicttoxml(data, attr_type=False)
+    with open(output_file, 'wb') as xmlfile:
+        xmlfile.write(xml)
 
 
 def sort_fields_and_values(opensearch_results, fields=[]):
