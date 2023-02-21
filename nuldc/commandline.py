@@ -5,6 +5,7 @@ USAGE:
     nuldc collections <id> [--as=<format> --all]
     nuldc search <query> [--model=<model>] [--as=<format>] [--all]
     nuldc csv <query> [--fields=<fields>] [--all] <outfile>
+    nuldc xml <query> [--all] <outfile>
 
 OPTIONS:
     --as=<format>      get results as [default: opensearch]
@@ -32,15 +33,14 @@ def main():
     if args['works']:
         data = helpers.get_work_by_id(api_base_url, args.get("<id>"), params)
     # collection
-    if args['collections']:
+    elif args['collections']:
         data = helpers.get_collection_by_id(api_base_url,
                                             args.get("<id>"),
                                             params,
                                             all_results=args.get(
                                                 "--all-records"))
     # search and csv use the same helper, grab data
-    if args["search"] or args["csv"]:
-
+    else:
         params = {"query": args.get("<query>"),
                   "as": args.get("--as"),
                   "size": "250"}
@@ -57,6 +57,11 @@ def main():
         headers, values = helpers.sort_fields_and_values(data, fields)
         helpers.save_as_csv(headers, values, args['<outfile>'])
         data = {"message": "saved csv to :" + args['<outfile>']}
+
+    if args["xml"]:
+        # saving xml
+        helpers.save_xml(data, args['<outfile>'])
+        data = {"message": "saved xml to :" + args['<outfile>']}
 
     # if there's a user message, print it otherwise dump the data
     print(data.get("message") or json.dumps(data))

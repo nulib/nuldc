@@ -75,6 +75,18 @@ files = [
 ]
 
 [[package]]
+name = "dicttoxml"
+version = "1.7.16"
+description = "Converts a Python dictionary or other native data type into a valid XML string."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "dicttoxml-1.7.16-py3-none-any.whl", hash = "sha256:8677671496d0d38e66c7179f82a7e9059f94887777955dc71b0ac602ee637c26"},
+    {file = "dicttoxml-1.7.16.tar.gz", hash = "sha256:6f36ce644881db5cd8940bee9b7cb3f3f6b7b327ba8a67d83d3e2caa0538bf9d"},
+]
+
+[[package]]
 name = "docopt"
 version = "0.6.2"
 description = "Pythonic argument parser, that will make you smile"
@@ -347,4 +359,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.1,<4"
-content-hash = "ae7709e01138ae4984f7e7d0aae94a2f7a4ff3bb3f4e546285179e77cb44bb98"
+content-hash = "a1a1833cd9a2808afd16c77c0dd3fa4c4c918b55a916fbac0c8bab155bcfd639"
