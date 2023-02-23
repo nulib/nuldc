@@ -1,7 +1,7 @@
 # nuldc
 
 
-A simple CLI for consuming [Northwestern University Libraries Digital Collections API](https://dcapi.rdc.library.northwestern.edu/docs/v2/index.html). It also includes a set of python helpers for rolling your own scripts.
+A simple CLI for consuming [Northwestern University Libraries Digital Collections API](https://api.dc.library.northwestern.edu/). It also includes a set of python helpers for rolling your own scripts.
 
 ## Quickstart
 
@@ -12,7 +12,6 @@ A simple CLI for consuming [Northwestern University Libraries Digital Collection
 
 ```
 ❯ nuldc --help
-
 NULDC
 
 USAGE:
@@ -20,6 +19,7 @@ USAGE:
     nuldc collections <id> [--as=<format> --all]
     nuldc search <query> [--model=<model>] [--as=<format>] [--all]
     nuldc csv <query> [--fields=<fields>] [--all] <outfile>
+    nuldc xml <query> [--all] <outfile>
 
 OPTIONS:
     --as=<format>      get results as [default: opensearch]
@@ -86,6 +86,16 @@ It also supports "dot" notation for getting into nested, special purpose fields.
 
 `nuldc csv "trains AND chicago" --all --fields id,title,ark,subject.id example.csv`
 
+### Save to xml
+
+You can export search results to an xml serialization of the data structure as well.
+
+`nuldc xml "trains AND chicago" out.xml`
+
+Or get all the records
+
+`nuldc xml "trains AND chicago" --all all.xml`
+
 ### Pipeable and Works great with jq!
 
 All of this is pipe-able too, so if you want to do further analysis with JQ or pipe data through some other
@@ -93,4 +103,27 @@ processing pipeline, go for it! For instance, let's grab just a coupld of fields
 a simplified shape.
 
 `nuldc search "berkeley AND guitars" --all | jq -r '.data[] | [.title,.id]`
+
+
+### Advanced Search
+
+You can search within specific fields and perform complex searches using the opensearch/elasticsearch [query-string-query syntax](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax). The query syntax is valid for all "search" operations: search, csv, xml. 
+
+#### Examples:
+
+Get a csv file of all works that have a fileset label including "recto"
+
+`nuldc csv "file_sets.label:Recto*" ~/Desktop/rectos.csv`
+
+Look at results that have a subject that includes "Chicago"
+
+`nuldc search "subject.label:*Chicago*"`
+
+Get Results that have a subject of "Chicago" AND a title of "Bus"
+
+`nuldc search "subject.label:*Chicago* AND title:bus"`
+
+Get results from a known collection that were modified before a certain date:
+
+`nuldc search "modified_date:<2022-10-01 AND collection.title:Berkeley*"`
 
