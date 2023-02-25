@@ -1,6 +1,5 @@
 from nuldc import helpers
 import json
-
 import re
 
 def slugify(s):
