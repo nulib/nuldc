@@ -10,15 +10,22 @@ API = "https://api.dc.library.northwestern.edu/api/v2"
 
 
 def slugify(s):
-  s = s.lower().strip()
-  s = re.sub(r'[^\w\s-]', '', s)
-  s = re.sub(r'[\s_-]+', '-', s)
-  s = re.sub(r'^-+|-+$', '', s)
-  return s
+    """takes a string and removes special characters, lowercases, and dashes it"""
+
+    s = s.lower().strip()
+    s = re.sub(r'[^\w\s-]', '', s)
+    s = re.sub(r'[\s_-]+', '-', s)
+    s = re.sub(r'^-+|-+$', '', s)
+    return s
 
 
 def save_files(basename, data):
     """takes a base filename and saves json, csv, and xml"""
+    
+    # make the directories if they don't exist
+    for d in ['json','xml','csv']:
+        if not os.path.isdir(d):
+            os.mkdir(d)
 
     with open(f"json/{basename}.json", 'w', encoding='utf-8') as f:
         json.dump(data.get('data'), f)
@@ -33,14 +40,14 @@ def dump_collection(col_id):
     """ Takes a collection id and grabs metadata then dumps into
     json, xml, and csv files"""
 
-        query = {"query":"collection.id:"+col_id}
-        data = helpers.get_search_results(API, 
-                                   "works", 
-                                   query, all_results=True)
+    query = {"query":f"collection.id:{col_id}"}
+    data = helpers.get_search_results(API, 
+                               "works", 
+                               query, all_results=True)
 
-        col_title = data['data'][0]['collection']['title']
-        filename = f"{slugify(col_title)}-{col_id}"
-        save_files(filename, data)
+    col_title = data['data'][0]['collection']['title']
+    filename = f"{slugify(col_title)}-{col_id}"
+    save_files(filename, data)
 
 
 def dump_collections(query_string):
@@ -67,17 +74,10 @@ def dump_collections(query_string):
 def main():
     """ Grabs all metadata. If there is an _updated_at.txt file it will only get 
     collections containign works updated since its modified date. """
-    
-    # make the directories if they don't exist
-    for d in ['json','xml','csv']:
-        if not os.path.isdir(d):
-            os.mkdir(d)
 
     if os.path.isfile("_updated_at.txt"):
         updated = os.path.getmtime('_updated_at.txt')
         query = f"modified_date:>={datetime.date.fromtimestamp(updated)}"
-
-        # query = f"modified_date:>=2022-10-01"
         print(f"looking for collections with works updated since {query}")
     else: 
         print("can't find updated since file, rebuilding all collections")
