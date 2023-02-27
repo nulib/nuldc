@@ -20,7 +20,7 @@ dicttoxml = "^1.7.16"
 
 [tool.poetry.scripts]
 nuldc = 'nuldc.commandline:main'
-
+nuldump = 'nuldc.dump:main'
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
