@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nuldc"
-version = "0.4.0"
+version = "0.5.0"
 description = ""
 authors = ["davidschober <davidschob@gmail.com>"]
 license = "MIT"
@@ -20,7 +20,7 @@ dicttoxml = "^1.7.16"
 
 [tool.poetry.scripts]
 nuldc = 'nuldc.commandline:main'
-
+nuldump = 'nuldc.dump:main'
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

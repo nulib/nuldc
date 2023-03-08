@@ -191,7 +191,25 @@ def sort_fields_and_values(opensearch_results, fields=[]):
     return fields, values
 
 
-def aggregate_by(search_url, query, agg):
+def aggregate_by(search_url, query_string, agg, size):
     """ Takes a base url and a query string query and aggs on a single
     agg field"""
-    pass
+
+    query = {
+              "size": "0",
+              "query": {
+                "query_string": {
+                  "query": query_string
+                  }
+              },
+            "aggs": {
+                agg: {
+                  "terms": {
+                    "field": agg,
+                    "size": size
+                  }
+                }
+              }
+            }
+
+    return requests.post(search_url, json=query)
