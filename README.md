@@ -7,7 +7,7 @@ A simple CLI for consuming [Northwestern University Libraries Digital Collection
 
 ### Install it
 
-`pip install git+https://github.com/nulib/nuldc/`
+`pip install nuldc`
 
 
 ```
