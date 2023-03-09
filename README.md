@@ -12,6 +12,7 @@ A simple CLI for consuming [Northwestern University Libraries Digital Collection
 
 ```
 ❯ nuldc --help
+
 NULDC
 
 USAGE:
@@ -20,6 +21,7 @@ USAGE:
     nuldc search <query> [--model=<model>] [--as=<format>] [--all]
     nuldc csv <query> [--fields=<fields>] [--all] <outfile>
     nuldc xml <query> [--all] <outfile>
+    nuldc --version
 
 OPTIONS:
     --as=<format>      get results as [default: opensearch]
@@ -127,3 +129,13 @@ Get results from a known collection that were modified before a certain date:
 
 `nuldc search "modified_date:<2022-10-01 AND collection.title:Berkeley*"`
 
+
+## Development
+
+This project is built using [POETRY](https://python-poetry.org/). Follow the latest install instructions, clone the repository and `poetry install`.
+
+### Tests
+
+This project uses pytest and has a very small set of tests to ensure things are running as expected.
+
+From a `poetry shell` run `pytest`.

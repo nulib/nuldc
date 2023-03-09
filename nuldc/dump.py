@@ -1,3 +1,25 @@
+"""
+This script is an opinionated dump of the nuldc metadata. 
+It should be run from the folder in which you want to create
+an archive of nul's digital collection metadata. It is run 
+with no arguments. First it looks to see if there's files
+for each type:
+
+    - json
+    - xml
+    - csv
+
+It then looks for an `_updated_at.txt` file. If one does not 
+exist it starts a clean dump. If one does exist it reads the first
+line and performs a date-based search with it on `date_modified`.
+After the run is complete it updates the _updated_at.txt file. 
+
+If you want to start from a specific date, simply tweak 
+_updated_at.txt.
+
+"""
+
+
 from nuldc import helpers
 import json
 import re
@@ -70,7 +92,7 @@ def dump_collections(query_string):
         executor.map(dump_collection, collection_ids)
 
     with open('_updated_at.txt', 'w') as f:
-        f.write(f'updated {datetime.datetime.now()}')
+        f.write(f"{datetime.datetime.now().strftime('%Y-%m-%d')}")
 
 
 def main():
@@ -78,8 +100,9 @@ def main():
     collections containign works updated since its modified date. """
 
     if os.path.isfile("_updated_at.txt"):
-        updated = os.path.getmtime('_updated_at.txt')
-        query = f"modified_date:>={datetime.date.fromtimestamp(updated)}"
+        with open('_updated_at.txt') as f:
+            updated = f.readline().strip()
+        query = f"modified_date:>={updated}"
         print(f"looking for collections with works updated since {query}")
     else:
         print("can't find updated since file, rebuilding all collections")
