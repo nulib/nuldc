@@ -6,11 +6,12 @@ import datetime
 import os
 
 
-API = "https://api.dc.library.northwestern.edu/api/v2" 
+API = "https://api.dc.library.northwestern.edu/api/v2"
 
 
 def slugify(s):
-    """takes a string and removes special characters, lowercases, and dashes it"""
+    """takes string and removes special characters,
+    lowercases, and dashes it"""
 
     s = s.lower().strip()
     s = re.sub(r'[^\w\s-]', '', s)
@@ -21,9 +22,9 @@ def slugify(s):
 
 def save_files(basename, data):
     """takes a base filename and saves json, csv, and xml"""
-    
+
     # make the directories if they don't exist
-    for d in ['json','xml','csv']:
+    for d in ['json', 'xml', 'csv']:
         if not os.path.isdir(d):
             os.mkdir(d)
 
@@ -32,7 +33,7 @@ def save_files(basename, data):
 
     helpers.save_xml(data.get('data'), f'xml/{basename}.xml')
 
-    headers, values  = helpers.sort_fields_and_values(data) 
+    headers, values = helpers.sort_fields_and_values(data)
     helpers.save_as_csv(headers, values, f'csv/{basename}.csv')
 
 
@@ -40,10 +41,10 @@ def dump_collection(col_id):
     """ Takes a collection id and grabs metadata then dumps into
     json, xml, and csv files"""
 
-    query = {"query":f"collection.id:{col_id}"}
-    data = helpers.get_search_results(API, 
-                               "works", 
-                               query, all_results=True)
+    query = {"query": f"collection.id:{col_id}"}
+    data = helpers.get_search_results(API,
+                                      "works",
+                                      query, all_results=True)
 
     col_title = data['data'][0]['collection']['title']
     filename = f"{slugify(col_title)}-{col_id}"
@@ -51,16 +52,17 @@ def dump_collection(col_id):
 
 
 def dump_collections(query_string):
-    """This dumps collections from a collectionlist.""" 
-    
-    search_url = f'{API}/search' 
-    # get collections list 
-    collections = helpers.aggregate_by(search_url, 
-                                       query_string, 
-                                       "collection.id", 
-                                       1000) 
+    """This dumps collections from a collectionlist."""
+
+    search_url = f'{API}/search'
+    # get collections list
+    collections = helpers.aggregate_by(search_url,
+                                       query_string,
+                                       "collection.id",
+                                       1000)
     # grab data for each collection and dump
-    collections = collections.json()['aggregations']['collection.id']['buckets']
+    collections = collections.json(
+    )['aggregations']['collection.id']['buckets']
 
     collection_ids = [c.get('key') for c in collections]
 
@@ -72,14 +74,14 @@ def dump_collections(query_string):
 
 
 def main():
-    """ Grabs all metadata. If there is an _updated_at.txt file it will only get 
+    """ Grabs all metadata. If there is an _updated_at.txt file it will only get
     collections containign works updated since its modified date. """
 
     if os.path.isfile("_updated_at.txt"):
         updated = os.path.getmtime('_updated_at.txt')
         query = f"modified_date:>={datetime.date.fromtimestamp(updated)}"
         print(f"looking for collections with works updated since {query}")
-    else: 
+    else:
         print("can't find updated since file, rebuilding all collections")
         query = "*"
 
