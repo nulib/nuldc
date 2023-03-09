@@ -6,6 +6,7 @@ USAGE:
     nuldc search <query> [--model=<model>] [--as=<format>] [--all]
     nuldc csv <query> [--fields=<fields>] [--all] <outfile>
     nuldc xml <query> [--all] <outfile>
+    nuldc --version
 
 OPTIONS:
     --as=<format>      get results as [default: opensearch]
@@ -23,10 +24,11 @@ ARGUMENTS:
 from docopt import docopt
 from nuldc import helpers
 import json
+from importlib import metadata
 
 
 def main():
-    args = docopt(__doc__)
+    args = docopt(__doc__, version=metadata.version('nuldc'))
     api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
     params = {"as": args.get("--as"), "size": "250"}
     # work

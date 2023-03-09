@@ -196,20 +196,20 @@ def aggregate_by(search_url, query_string, agg, size):
     agg field"""
 
     query = {
-              "size": "0",
-              "query": {
-                "query_string": {
-                  "query": query_string
-                  }
-              },
-            "aggs": {
-                agg: {
-                  "terms": {
+        "size": "0",
+        "query": {
+            "query_string": {
+                "query": query_string
+            }
+        },
+        "aggs": {
+            agg: {
+                "terms": {
                     "field": agg,
                     "size": size
-                  }
                 }
-              }
             }
+        }
+    }
 
     return requests.post(search_url, json=query)
