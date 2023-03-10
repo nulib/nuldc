@@ -11,12 +11,11 @@ for each type:
 
 It then looks for an `_updated_at.txt` file. If one does not 
 exist it starts a clean dump. If one does exist it reads the first
-line and performs a date-based search with it on `date_modified`.
+line and performs a date-based search with it on `indexed_at`.
 After the run is complete it updates the _updated_at.txt file. 
 
 If you want to start from a specific date, simply tweak 
 _updated_at.txt.
-
 """
 
 
@@ -63,10 +62,10 @@ def dump_collection(col_id):
     """ Takes a collection id and grabs metadata then dumps into
     json, xml, and csv files"""
 
-    query = {"query": f"collection.id:{col_id}"}
+    params = {"query": f"collection.id:{col_id}", "size": "250"}
     data = helpers.get_search_results(API,
                                       "works",
-                                      query, all_results=True)
+                                      params, all_results=True)
 
     col_title = data['data'][0]['collection']['title']
     filename = f"{slugify(col_title)}-{col_id}"
@@ -102,7 +101,8 @@ def main():
     if os.path.isfile("_updated_at.txt"):
         with open('_updated_at.txt') as f:
             updated = f.readline().strip()
-        query = f"modified_date:>={updated}"
+            
+        query = f"indexed_at:>={updated}"
         print(f"looking for collections with works updated since {query}")
     else:
         print("can't find updated since file, rebuilding all collections")
