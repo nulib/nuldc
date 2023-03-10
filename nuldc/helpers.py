@@ -61,7 +61,8 @@ def get_all_search_results(start_results, page_limit):
         next = next_results.get('pagination').get('next_url')
         pbar.update(1)
     pbar.close()
-
+    # set next url to blank
+    results['pagination']['next_url']=''
     return results
 
 

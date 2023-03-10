@@ -45,7 +45,7 @@ def main():
     else:
         params = {"query": args.get("<query>"),
                   "as": args.get("--as"),
-                  "size": "250"}
+                  "size": "200"}
         # get the data from the search results helper
         data = helpers.get_search_results(api_base_url,
                                           args["--model"],
