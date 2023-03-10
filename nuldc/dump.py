@@ -1,7 +1,7 @@
 """
-This script is an opinionated dump of the nuldc metadata. 
+This script is an opinionated dump of the nuldc metadata.
 It should be run from the folder in which you want to create
-an archive of nul's digital collection metadata. It is run 
+an archive of nul's digital collection metadata. It is run
 with no arguments. First it looks to see if there's files
 for each type:
 
@@ -9,12 +9,12 @@ for each type:
     - xml
     - csv
 
-It then looks for an `_updated_at.txt` file. If one does not 
+It then looks for an `_updated_at.txt` file. If one does not
 exist it starts a clean dump. If one does exist it reads the first
 line and performs a date-based search with it on `indexed_at`.
-After the run is complete it updates the _updated_at.txt file. 
+After the run is complete it updates the _updated_at.txt file.
 
-If you want to start from a specific date, simply tweak 
+If you want to start from a specific date, simply tweak
 _updated_at.txt.
 """
 
@@ -95,13 +95,14 @@ def dump_collections(query_string):
 
 
 def main():
-    """ Grabs all metadata. If there is an _updated_at.txt file it will only get
-    collections containign works updated since its modified date. """
+    """ Grabs all metadata. If there is an _updated_at.txt file it will
+    only get collections containign works updated since its modified
+    date. """
 
     if os.path.isfile("_updated_at.txt"):
         with open('_updated_at.txt') as f:
             updated = f.readline().strip()
-            
+
         query = f"indexed_at:>={updated}"
         print(f"looking for collections with works updated since {query}")
     else:

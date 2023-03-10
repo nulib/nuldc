@@ -10,7 +10,7 @@ USAGE:
 
 OPTIONS:
     --as=<format>      get results as [default: opensearch]
-    --model=<model>    search model (works,collections,filesets) [default: works]
+    --model=<model>    model (works,collections,filesets) [default: works]
     --all              get all records from search
     --fields=<fields>  optional set of fields,e.g id,ark,test defaults to all
     -h --help          Show this screen
