@@ -16,7 +16,6 @@ After the run is complete it updates the _updated_at.txt file.
 
 If you want to start from a specific date, simply tweak 
 _updated_at.txt.
-
 """
 
 
@@ -102,6 +101,7 @@ def main():
     if os.path.isfile("_updated_at.txt"):
         with open('_updated_at.txt') as f:
             updated = f.readline().strip()
+            
         query = f"indexed_at:>={updated}"
         print(f"looking for collections with works updated since {query}")
     else:
