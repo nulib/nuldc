@@ -30,7 +30,11 @@ from importlib import metadata
 def main():
     args = docopt(__doc__, version=metadata.version('nuldc'))
     api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
-    params = {"as": args.get("--as"), "size": "250"}
+    # sort on id if it's all records
+    if args['--all']:
+        params = {"as": args.get("--as"), "size": "250", "sort": "id:asc"}
+    else:
+        params = {"as": args.get("--as"), "size": "250"}
     # work
     if args['works']:
         data = helpers.get_work_by_id(api_base_url, args.get("<id>"), params)
@@ -40,12 +44,10 @@ def main():
                                             args.get("<id>"),
                                             params,
                                             all_results=args.get(
-                                                "--all-records"))
+                                                "--all"))
     # search and csv use the same helper, grab data
     else:
-        params = {"query": args.get("<query>"),
-                  "as": args.get("--as"),
-                  "size": "200"}
+        params["query"] = args.get("<query>")
         # get the data from the search results helper
         data = helpers.get_search_results(api_base_url,
                                           args["--model"],
