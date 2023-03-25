@@ -30,10 +30,10 @@ from importlib import metadata
 def main():
     args = docopt(__doc__, version=metadata.version('nuldc'))
     api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
-    #sort on id if it's all records
+    # sort on id if it's all records
     if args['--all']:
         params = {"as": args.get("--as"), "size": "250", "sort": "id:asc"}
-    else: 
+    else:
         params = {"as": args.get("--as"), "size": "250"}
     # work
     if args['works']:
