@@ -30,7 +30,7 @@ from importlib import metadata
 def main():
     args = docopt(__doc__, version=metadata.version('nuldc'))
     api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
-    params = {"as": args.get("--as"), "size": "250"}
+    params = {"as": args.get("--as"), "size": "250", "sort": "id:asc"}
     # work
     if args['works']:
         data = helpers.get_work_by_id(api_base_url, args.get("<id>"), params)
@@ -45,7 +45,7 @@ def main():
     else:
         params = {"query": args.get("<query>"),
                   "as": args.get("--as"),
-                  "size": "200"}
+                  "size": "250", "sort": "id:asc"}
         # get the data from the search results helper
         data = helpers.get_search_results(api_base_url,
                                           args["--model"],

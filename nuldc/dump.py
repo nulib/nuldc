@@ -62,7 +62,10 @@ def dump_collection(col_id):
     """ Takes a collection id and grabs metadata then dumps into
     json, xml, and csv files"""
 
-    params = {"query": f"collection.id:{col_id}", "size": "250"}
+    params = {
+        "query": f"collection.id:{col_id}",
+        "size": "250",
+        "sort": "id:asc"}
     data = helpers.get_search_results(API,
                                       "works",
                                       params, all_results=True)
