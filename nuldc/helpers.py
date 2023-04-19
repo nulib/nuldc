@@ -68,7 +68,7 @@ def get_all_search_results(start_results, page_limit):
 
 
 def get_collection_by_id(api_base_url, identifier,
-                         parameters, all_results=False):
+                         parameters, all_results=False, page_limit=200):
     """returns a collection as IIIF or json"""
 
     url = f"{api_base_url}/collections/{identifier}"
@@ -82,7 +82,7 @@ def get_collection_by_id(api_base_url, identifier,
         url = f"{api_base_url}/search"
         total_pages = requests.get(url, count_params).json()[
             'pagination']['total_pages']
-        results = get_all_iiif(results, total_pages)
+        results = get_all_iiif(results, total_pages, page_limit)
 
     return results
 
