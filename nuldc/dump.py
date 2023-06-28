@@ -88,10 +88,8 @@ def dump_collections(query_string):
     collections = collections.json(
     )['aggregations']['collection.id']['buckets']
 
-    collection_ids = [c.get('key') for c in collections]
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        executor.map(dump_collection, collection_ids)
+    for c in collections:
+        dump_collection(c['key'])
 
     with open('_updated_at.txt', 'w') as f:
         f.write(f"{datetime.datetime.now().strftime('%Y-%m-%d')}")
