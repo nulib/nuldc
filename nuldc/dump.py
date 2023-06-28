@@ -88,7 +88,8 @@ def dump_collections(query_string):
     collections = collections.json(
     )['aggregations']['collection.id']['buckets']
 
-    collection_ids = [c.get('key') for c in collections]
+    for c in collections:
+        dump_collection(c['key'])
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         executor.map(dump_collection, collection_ids)
