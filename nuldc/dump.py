@@ -64,7 +64,7 @@ def dump_collection(col_id):
 
     params = {
         "query": f"collection.id:{col_id}",
-        "size": "250",
+        "size": "25",
         "sort": "id:asc"}
     data = helpers.get_search_results(API,
                                       "works",

@@ -68,7 +68,7 @@ def get_all_search_results(start_results, page_limit):
 
 
 def get_collection_by_id(api_base_url, identifier,
-                         parameters, all_results=False, page_limit=200):
+                         parameters, all_results=False, page_limit=2000):
     """returns a collection as IIIF or json"""
 
     url = f"{api_base_url}/collections/{identifier}"
@@ -108,7 +108,7 @@ def get_nested_field(field, source_dict):
 
 
 def get_search_results(api_base_url, model, parameters,
-                       all_results=False, page_limit=200):
+                       all_results=False, page_limit=2000):
     """iterates through and grabs the search results. Sets a default pagelimit
     to 200"""
 
