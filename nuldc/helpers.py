@@ -2,8 +2,29 @@ import requests
 import unicodecsv as csv
 import tqdm
 import dicttoxml
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
+
 
 api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
+
+def retry_session(retries, session=None, backoff_factor=0.3):
+    """session = retry_session(retries=5)
+    session.post(url=endpoint, data=json.dumps(x), headers=headers)"""
+
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        status_forcelist=[429, 500, 502, 503, 504],
+        backoff_factor=backoff_factor,
+        method_whitelist=False,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 
 def get_all_iiif(start_manifest, total_pages, page_limit):
@@ -11,6 +32,7 @@ def get_all_iiif(start_manifest, total_pages, page_limit):
     collection and items"""
 
     # check to see if there's too many pages, bail with message
+
     if total_pages > page_limit:
         return {'message':
                 f'{total_pages} pages! Let\'s keep it under {page_limit}.'}
@@ -19,20 +41,28 @@ def get_all_iiif(start_manifest, total_pages, page_limit):
 
     if manifest.get('items')[-1].get('type') == 'Collection':
         # pop off the next
-        next = manifest['items'].pop().get('id')
+        next_id = manifest['items'].pop().get('id')
     else:
-        next = None
+        next_id = None
 
     pbar = tqdm.tqdm(total=total_pages, initial=1)
-
-    while next:
-        next_results = requests.get(next).json()
-        if next_results.get('items')[-1].get('type') == 'Collection':
-            next = next_results['items'].pop().get('id')
+    # If there's a next keep looping
+    while next_id:
+        session = retry_session(3)
+        next_results = session.get(next_id)
+        if next_results:
+            next_results = next_results.json()
+            if next_results.get('items')[-1].get('type') == 'Collection':
+                next_id = next_results['items'].pop().get('id')
+            else:
+                next_id = None
+            pbar.update(1)
+            manifest['items'] = manifest['items'] + next_results['items']
+        # If there's a problem (e.g. a server error, bonk and return the error as is in the output 
         else:
-            next = None
-        pbar.update(1)
-        manifest['items'] = manifest['items'] + next_results['items']
+            # if there's an error, return the error
+            return next_results.json() 
+
     pbar.close()
 
     return manifest
