@@ -22,7 +22,6 @@ def retry_session(retries, session=None, backoff_factor=0.3):
         method_whitelist=False,
     )
     adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
     session.mount('https://', adapter)
     return session
 
