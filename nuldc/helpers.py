@@ -49,7 +49,7 @@ def get_all_search_results(start_results, page_limit):
     # stop if there's too many results and bail
     if total_pages > page_limit:
         return {'message':
-                f'{total_pages} pages! Let\'s keep it under {total_pages}.'}
+                f'{total_pages} pages! Let\'s keep it under {page_limit}.'}
 
     # add a progress bar when you get a lot of results
     pbar = tqdm.tqdm(total=total_pages, initial=1)
@@ -108,7 +108,7 @@ def get_nested_field(field, source_dict):
 
 
 def get_search_results(api_base_url, model, parameters,
-                       all_results=False, page_limit=200):
+                       all_results=False, page_limit=5000):
     """iterates through and grabs the search results. Sets a default pagelimit
     to 200"""
 
