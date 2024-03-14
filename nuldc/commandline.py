@@ -32,9 +32,9 @@ def main():
     api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
     # sort on id if it's all records
     if args['--all']:
-        params = {"as": args.get("--as"), "size": "25", "sort": "id:asc"}
+        params = {"as": args.get("--as"), "size": "100", "sort": "id:asc"}
     else:
-        params = {"as": args.get("--as"), "size": "25"}
+        params = {"as": args.get("--as"), "size": "100"}
     # work
     if args['works']:
         data = helpers.get_work_by_id(api_base_url, args.get("<id>"), params)
