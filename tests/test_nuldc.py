@@ -23,12 +23,14 @@ i   Pass in a 'next_url' if you want to fake a next page, otherwise pass in ''
                  "title": "1 title",
                  "parent": {"child": "child value1",
                             "label": "parent1 label"},
-                 "list": ["1", "2", "3"]},
+                 "list": ["1", "2", "3"],
+                 "embedding": [.9, .8, .7, .6]}, 
                 {"id": "2",
                  "title": "2 title",
                  "parent": {"child": "child value2",
                             "label": "parent1 label"},
-                 "list": ["1", "2", "3"]}
+                 "list": ["1", "2", "3"],
+                 "embedding": [.9, .8, .7, .6]}
             ],
             "pagination": {
                 "query_url": "https://fake.com",
@@ -163,5 +165,8 @@ def test_sort_fields_and_values(mock_dcapi):
                 len(some_fields) == 2,
                 len(some_values[0]) == 2,
                 "parent" in all_fields,
-                "parent" not in some_fields]
+                "parent" not in some_fields,
+                # verify sort
+                ['id','list', 'parent', 'title'] == all_fields,
+                ['1', '1|2|3', 'parent1 label', '1 title'] == all_values[0]]
                )

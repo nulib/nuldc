@@ -49,7 +49,7 @@ def get_all_search_results(start_results, page_limit):
     # stop if there's too many results and bail
     if total_pages > page_limit:
         return {'message':
-                f'{total_pages} pages! Let\'s keep it under {total_pages}.'}
+                f'{total_pages} pages! Let\'s keep it under {page_limit}.'}
 
     # add a progress bar when you get a lot of results
     pbar = tqdm.tqdm(total=total_pages, initial=1)
@@ -68,7 +68,7 @@ def get_all_search_results(start_results, page_limit):
 
 
 def get_collection_by_id(api_base_url, identifier,
-                         parameters, all_results=False, page_limit=2000):
+                         parameters, all_results=False, page_limit=1000):
     """returns a collection as IIIF or json"""
 
     url = f"{api_base_url}/collections/{identifier}"
@@ -78,7 +78,7 @@ def get_collection_by_id(api_base_url, identifier,
         # fire off a search for total pagecount this powers the progressbar
         count_params = parameters
         count_params['as'] = 'opensearch'
-        count_params['query'] = f'collection.id:{identifier}'
+        count_params['query'] = f'collection.id: {identifier}'
         url = f"{api_base_url}/search"
         total_pages = requests.get(url, count_params).json()[
             'pagination']['total_pages']
@@ -108,7 +108,7 @@ def get_nested_field(field, source_dict):
 
 
 def get_search_results(api_base_url, model, parameters,
-                       all_results=False, page_limit=2000):
+                       all_results=False, page_limit=1000):
     """iterates through and grabs the search results. Sets a default pagelimit
     to 200"""
 
@@ -144,8 +144,8 @@ def normalize_format(field):
     if isinstance(field, list) and all(isinstance(d, dict) for d in field):
         # try to get a label fall back to the field. Concat everything
         field = '|'.join([str(i.get('label', i)) for i in field])
-    if isinstance(field, list):
-        # join a list with pipes for readability
+    if isinstance(field, list) and all(isinstance(i, str) for i in field):
+        # join a list of strings pipes for readability
         field = '|'.join(field)
 
     return str(field)
@@ -175,20 +175,22 @@ def sort_fields_and_values(opensearch_results, fields=[]):
     notation for digging deeper into metadta.
     """
 
+    ignore_fields = ['embedding', 'embedding_model']
     data = opensearch_results.get('data')
 
     if fields:
-        # values = [[i.get(f) for f in fields] for i in data]
+        # if fields are passed in, use them
         values = [[normalize_format(get_nested_field(f, i))
                    for f in fields] for i in data]
+    elif data:
+        # get only items not in ignore_fields and sort the dictionary
+        data = [{key: normalize_format(value)
+                 for (key, value) in sorted(d.items())
+                 if key not in ignore_fields} for d in data]
+        fields = list(data[0])
+        values = [list(d.values()) for d in data]
     else:
-        values = [[normalize_format(field)
-                  for field in dict(sorted(row.items())).values()]
-                  for row in data]
-        if data:
-            fields = list(sorted(data[0].keys()))
-        else:
-            fields = ["no results"]
+        fields = ["no results"]
 
     return fields, values
 
