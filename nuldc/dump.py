@@ -25,6 +25,7 @@ import re
 import concurrent.futures
 import datetime
 import os
+import sys
 
 
 API = "https://api.dc.library.northwestern.edu/api/v2"
@@ -64,15 +65,17 @@ def dump_collection(col_id):
 
     params = {
         "query": f"collection.id:{col_id}",
-        "size": "25",
+        "size": "100",
         "sort": "id:asc"}
     data = helpers.get_search_results(API,
                                       "works",
-                                      params, all_results=True)
-
-    col_title = data['data'][0]['collection']['title']
-    filename = f"{slugify(col_title)}-{col_id}"
-    save_files(filename, data)
+                                      params, all_results=True, page_limit=5000)
+    try:
+        col_title = data['data'][0]['collection']['title']
+        filename = f"{slugify(col_title)}-{col_id}"
+        save_files(filename, data)
+    except Exception as e:
+        sys.exit(f"Error with collection {col_id}: {e} \n\n CONTEXT: {data}")
 
 
 def dump_collections(query_string):
