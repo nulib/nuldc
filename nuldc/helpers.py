@@ -176,8 +176,17 @@ def save_as_csv(headers, values, output_file):
 
 def save_xml(data, output_file):
     """takes results as a list of dicts and writes them out to xml"""
+    
 
+    # TODO DRY up this bit and sort_fields_and_values
+
+    ignore_fields = ['embedding', 'embedding_model']
+    
+    data = [{key: value
+             for (key, value) in sorted(d.items())
+             if key not in ignore_fields} for d in data.get('data')]
     xml = dicttoxml.dicttoxml(data, attr_type=False)
+  
     with open(output_file, 'wb') as xmlfile:
         xmlfile.write(xml)
 
