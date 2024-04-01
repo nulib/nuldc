@@ -12,7 +12,7 @@ api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
 retries = urllib3.Retry(total=5,
                         backoff_factor=1,
                         status_forcelist=[429, 500, 502, 503, 504],
-                        method_whitelist=['GET', 'POST'])
+                        allowed_methods=['GET', 'POST'])
 
 session = requests.Session()
 adapter = HTTPAdapter(max_retries=retries)
