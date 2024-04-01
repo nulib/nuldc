@@ -22,7 +22,6 @@ _updated_at.txt.
 from nuldc import helpers
 import json
 import re
-import concurrent.futures
 import datetime
 import os
 import sys
@@ -67,10 +66,10 @@ def dump_collection(col_id):
         "query": f"collection.id:{col_id}",
         "size": "100",
         "sort": "id:asc"}
-    data = helpers.get_search_results(API,
-                                      "works",
-                                      params, all_results=True, page_limit=5000)
     try:
+        data = helpers.get_search_results(API,
+                                      "works",
+                                          params, all_results=True, page_limit=5000)
         col_title = data['data'][0]['collection']['title']
         filename = f"{slugify(col_title)}-{col_id}"
         save_files(filename, data)

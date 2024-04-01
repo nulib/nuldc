@@ -1,9 +1,22 @@
 import requests
+from requests.adapters import HTTPAdapter
+import urllib3
 import unicodecsv as csv
 import tqdm
 import dicttoxml
 
+
 api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
+
+# set retries for req
+retries = urllib3.Retry(total=5,
+                        backoff_factor=1,
+                        status_forcelist=[429, 500, 502, 503, 504],
+                        method_whitelist=['GET', 'POST'])
+
+session = requests.Session()
+adapter = HTTPAdapter(max_retries=retries)
+session.mount('https://', adapter)
 
 
 def get_all_iiif(start_manifest, total_pages, page_limit):
@@ -26,7 +39,7 @@ def get_all_iiif(start_manifest, total_pages, page_limit):
     pbar = tqdm.tqdm(total=total_pages, initial=1)
 
     while next:
-        next_results = requests.get(next).json()
+        next_results = session.get(next).json()
         if next_results.get('items')[-1].get('type') == 'Collection':
             next = next_results['items'].pop().get('id')
         else:
@@ -56,7 +69,7 @@ def get_all_search_results(start_results, page_limit):
 
     # loop through the results
     while next:
-        next_results = requests.get(next).json()
+        next_results = session.get(next).json()
         results['data'] = results['data'] + next_results.get('data')
         next = next_results.get('pagination').get('next_url')
         pbar.update(1)
@@ -72,7 +85,7 @@ def get_collection_by_id(api_base_url, identifier,
     """returns a collection as IIIF or json"""
 
     url = f"{api_base_url}/collections/{identifier}"
-    results = requests.get(url, params=parameters).json()
+    results = session.get(url, params=parameters).json()
 
     if all_results and parameters.get('as') == 'iiif':
         # fire off a search for total pagecount this powers the progressbar
@@ -80,7 +93,7 @@ def get_collection_by_id(api_base_url, identifier,
         count_params['as'] = 'opensearch'
         count_params['query'] = f'collection.id: {identifier}'
         url = f"{api_base_url}/search"
-        total_pages = requests.get(url, count_params).json()[
+        total_pages = session.get(url, count_params).json()[
             'pagination']['total_pages']
         results = get_all_iiif(results, total_pages, page_limit)
 
@@ -113,13 +126,13 @@ def get_search_results(api_base_url, model, parameters,
     to 200"""
 
     url = f"{api_base_url}/search/{model}"
-    search_results = requests.get(url, params=parameters).json()
+    search_results = session.get(url, params=parameters).json()
 
     # Get all results as IIIF
     if all_results and parameters.get('as') == 'iiif':
         count_params = parameters
         count_params['as'] = 'opensearch'
-        total_pages = requests.get(url, count_params).json()[
+        total_pages = session.get(url, count_params).json()[
             'pagination']['total_pages']
         search_results = get_all_iiif(search_results, total_pages, page_limit)
     elif all_results:
@@ -132,7 +145,7 @@ def get_work_by_id(api_base_url, identifier, parameters):
     """returns a work as IIIF or json"""
 
     url = f"{api_base_url}/works/{identifier}"
-    return requests.get(url, params=parameters).json()
+    return session.get(url, params=parameters).json()
 
 
 def normalize_format(field):
@@ -216,4 +229,4 @@ def aggregate_by(search_url, query_string, agg, size):
         }
     }
 
-    return requests.post(search_url, json=query)
+    return session.post(search_url, json=query)
