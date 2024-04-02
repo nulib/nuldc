@@ -52,7 +52,7 @@ def save_files(basename, data):
     with open(f"json/{basename}.json", 'w', encoding='utf-8') as f:
         json.dump(data.get('data'), f)
 
-    helpers.save_xml(data.get('data'), f'xml/{basename}.xml')
+    helpers.save_xml(data, f'xml/{basename}.xml')
 
     headers, values = helpers.sort_fields_and_values(data)
     helpers.save_as_csv(headers, values, f'csv/{basename}.csv')
@@ -63,13 +63,15 @@ def dump_collection(col_id):
     json, xml, and csv files"""
 
     params = {
-        "query": f"collection.id:{col_id}",
+        "query": f"collection.id: {col_id}",
         "size": "50",
         "sort": "id:asc"}
     try:
         data = helpers.get_search_results(API,
-                                      "works",
-                                          params, all_results=True, page_limit=5000)
+                                          "works",
+                                          params,
+                                          all_results=True,
+                                          page_limit=5000)
         col_title = data['data'][0]['collection']['title']
         filename = f"{slugify(col_title)}-{col_id}"
         save_files(filename, data)
@@ -106,7 +108,7 @@ def main():
         with open('_updated_at.txt') as f:
             updated = f.readline().strip()
 
-        query = f"indexed_at:>={updated}"
+        query = f"indexed_at: >={updated}"
         print(f"looking for collections with works updated since {query}")
     else:
         print("can't find updated since file, rebuilding all collections")

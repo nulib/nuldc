@@ -63,7 +63,7 @@ def main():
         data = {"message": "saved csv to :" + args['<outfile>']}
 
     if args["xml"]:
-        # saving xml
+        # saving xml 
         helpers.save_xml(data, args['<outfile>'])
         data = {"message": "saved xml to :" + args['<outfile>']}
 
