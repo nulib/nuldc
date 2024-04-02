@@ -63,7 +63,7 @@ def dump_collection(col_id):
     json, xml, and csv files"""
 
     params = {
-        "query": f"collection.id: {col_id}",
+        "query": f"collection.id:{col_id}",
         "size": "50",
         "sort": "id:asc"}
     try:
