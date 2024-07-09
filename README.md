@@ -9,6 +9,9 @@ A simple CLI for consuming [Northwestern University Libraries Digital Collection
 
 `pip install nuldc`
 
+### Upgrading to a new verson
+
+`pip install --upgrade nuldc`
 
 ```
 ❯ nuldc --help
