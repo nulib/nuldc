@@ -65,7 +65,8 @@ def dump_collection(col_id):
     params = {
         "query": f"collection.id:{col_id}",
         "size": "25",
-        "sort": "id:asc"}
+        "sort": "id:asc",
+        "_source_excludes":"embedding"}
     try:
         data = helpers.get_search_results(API,
                                           "works",
@@ -76,7 +77,7 @@ def dump_collection(col_id):
         filename = f"{slugify(col_title)}-{col_id}"
         save_files(filename, data)
     except Exception as e:
-        sys.exit(f"Error with collection {col_id}: {e} \n\n CONTEXT: {data}")
+        sys.exit(f"Error with collection {col_id}: {e} \n\n CONTEXT:")
 
 
 def dump_collections(query_string):

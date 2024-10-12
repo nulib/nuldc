@@ -6,7 +6,7 @@ from nuldc.helpers import (get_search_results,
                            get_nested_field,
                            get_work_by_id,
                            normalize_format,
-                           sort_fields_and_values
+                           sort_fields_and_values 
                            )
 
 
@@ -170,3 +170,4 @@ def test_sort_fields_and_values(mock_dcapi):
                 ['id','list', 'parent', 'title'] == all_fields,
                 ['1', '1|2|3', 'parent1 label', '1 title'] == all_values[0]]
                )
+

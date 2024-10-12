@@ -99,7 +99,6 @@ def get_collection_by_id(api_base_url, identifier,
 
     return results
 
-
 def get_nested_field(field, source_dict):
     """Handles nested fields using dotted notation from the cli fields and
     flattens nested data"""
