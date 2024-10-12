@@ -6,7 +6,7 @@ from nuldc.helpers import (get_search_results,
                            get_nested_field,
                            get_work_by_id,
                            normalize_format,
-                           sort_fields_and_values 
+                           sort_fields_and_values
                            )
 
 
@@ -24,7 +24,7 @@ i   Pass in a 'next_url' if you want to fake a next page, otherwise pass in ''
                  "parent": {"child": "child value1",
                             "label": "parent1 label"},
                  "list": ["1", "2", "3"],
-                 "embedding": [.9, .8, .7, .6]}, 
+                 "embedding": [.9, .8, .7, .6]},
                 {"id": "2",
                  "title": "2 title",
                  "parent": {"child": "child value2",
@@ -70,12 +70,12 @@ def mock_dcapi_iiif():
                         "id": "https://example.org/iiif/result-2.json",
                         "type": "Manifest",
                         "label": {"none": ["Paged Collection - Result 2"]}
-                        },
+                    },
                 {
                         "id": "https://example.org/iiif/paged-2.json",
                         "type": "Collection",
                         "label": {"none": ["Paged Collection - Page 2"]}
-                        }
+                    }
             ]
         }
         return data
@@ -167,7 +167,6 @@ def test_sort_fields_and_values(mock_dcapi):
                 "parent" in all_fields,
                 "parent" not in some_fields,
                 # verify sort
-                ['id','list', 'parent', 'title'] == all_fields,
+                ['id', 'list', 'parent', 'title'] == all_fields,
                 ['1', '1|2|3', 'parent1 label', '1 title'] == all_values[0]]
                )
-
