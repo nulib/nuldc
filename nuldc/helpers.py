@@ -141,7 +141,7 @@ def get_search_results(api_base_url, model, parameters,
     return search_results
 
 
-def get_work_by_id(api_base_url, identifier, parameters):
+def get_work_by_id(api_base_url, identifier, parameters, **kwargs):
     """returns a work as IIIF or json"""
 
     url = f"{api_base_url}/works/{identifier}"

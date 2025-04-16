@@ -1,75 +1,97 @@
-"""NULDC
-
-USAGE:
-    nuldc works <id> [--as=<format>]
-    nuldc collections <id> [--as=<format> --all]
-    nuldc search <query> [--model=<model>] [--as=<format>] [--all]
-    nuldc csv <query> [--fields=<fields>] [--all] <outfile>
-    nuldc xml <query> [--all] <outfile>
-    nuldc --version
-
-OPTIONS:
-    --as=<format>      get results as [default: opensearch]
-    --model=<model>    model (works,collections,filesets) [default: works]
-    --all              get all records from search
-    --fields=<fields>  optional set of fields,e.g id,ark,test defaults to all
-    -h --help          Show this screen
-
-ARGUMENTS:
-    as: opensearch
-        iiif
-"""
-
-
-from docopt import docopt
+import typer
 from nuldc import helpers
 import json
-from importlib import metadata
 
+app = typer.Typer()
+
+# Base API URL
+api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
+
+# Shared options
+as_option = typer.Option(
+    "json", "--as", help="Output format: 'json', 'csv', 'xml', or 'iiif' [default: json]"
+)
+
+# Utility function to handle API requests and format output
+def handle_request(command: str, id_or_query: str, as_format: str, **kwargs):
+    # Map commands to helper functions
+    helper_functions = {
+        "works": helpers.get_work_by_id,
+        "collections": helpers.get_collection_by_id,
+        "search": helpers.get_search_results,
+    }
+    
+    # Get the appropriate helper function
+    helper_function = helper_functions.get(command)
+    if not helper_function:
+        typer.echo(f"Error: Unrecognized command '{command}'.")
+        raise typer.Exit(code=1)
+
+    # Build API parameters
+    params = {"as": as_format, "size": "50"}
+    if kwargs.get("all_records"):
+        params["sort"] = "id:asc"
+    if command == "search" and kwargs.get("model"):
+        params["query"] = id_or_query
+    else:
+        params["id"] = id_or_query
+
+    # Call the helper function
+    data = helper_function(api_base_url, id_or_query, params)
+
+    # Handle output format
+    if as_format == "csv":
+        if not kwargs.get("outfile"):
+            typer.echo("Error: --outfile is required for CSV output.")
+            raise typer.Exit(code=1)
+        helpers.save_as_csv(data, kwargs["outfile"])
+        typer.echo(f"Saved CSV to {kwargs['outfile']}")
+    elif as_format == "xml":
+        if not kwargs.get("outfile"):
+            typer.echo("Error: --outfile is required for XML output.")
+            raise typer.Exit(code=1)
+        helpers.save_xml(data, kwargs["outfile"])
+        typer.echo(f"Saved XML to {kwargs['outfile']}")
+    elif as_format == "iiif":
+        typer.echo(json.dumps(data, indent=2))
+    else:  # Default to JSON
+        typer.echo(json.dumps(data, indent=2))
+
+
+@app.command()
+def works(
+    id: str,
+    as_format: str = as_option,
+    outfile: str = typer.Option(None, "--outfile", help="File to save output (required for 'csv' and 'xml')"),
+    all_records: bool = typer.Option(False, "--all", help="Fetch all records"),
+):
+    """Fetch a work by ID"""
+    handle_request("works", id, as_format, outfile=outfile, all_records=all_records)
+
+
+@app.command()
+def collections(
+    id: str,
+    as_format: str = as_option,
+    outfile: str = typer.Option(None, "--outfile", help="File to save output (required for 'csv' and 'xml')"),
+    all_records: bool = typer.Option(False, "--all", help="Fetch all records"),
+):
+    """Fetch a collection by ID"""
+    handle_request("collections", id, as_format, outfile=outfile, all_records=all_records)
+
+
+@app.command()
+def search(
+    query: str,
+    model: str = typer.Option("works", "--model", help="Model to search (e.g., works, collections, filesets)"),
+    as_format: str = as_option,
+    outfile: str = typer.Option(None, "--outfile", help="File to save output (required for 'csv' and 'xml')"),
+    all_records: bool = typer.Option(False, "--all", help="Fetch all records"),
+):
+    """Search for records"""
+    handle_request("search", query, as_format, model=model, outfile=outfile, all_records=all_records)
 
 def main():
-    args = docopt(__doc__, version=metadata.version('nuldc'))
-    api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
-    # sort on id if it's all records
-    if args['--all']:
-        params = {"as": args.get("--as"), "size": "50", "sort": "id:asc"}
-    else:
-        params = {"as": args.get("--as"), "size": "50"}
-    # work
-    if args['works']:
-        data = helpers.get_work_by_id(api_base_url, args.get("<id>"), params)
-    # collection
-    elif args['collections']:
-        data = helpers.get_collection_by_id(api_base_url,
-                                            args.get("<id>"),
-                                            params,
-                                            all_results=args.get(
-                                                "--all"))
-    # search and csv use the same helper, grab data
-    else:
-        params["query"] = args.get("<query>")
-        # get the data from the search results helper
-        data = helpers.get_search_results(api_base_url,
-                                          args["--model"],
-                                          params,
-                                          all_results=args.get("--all"))
-    # if it's csv pipe the data out and return a nice message
-    if args["csv"]:
-        fields = args.get("--fields")
-        if fields:
-            fields = fields.split(",")
-        headers, values = helpers.sort_fields_and_values(data, fields)
-        helpers.save_as_csv(headers, values, args['<outfile>'])
-        data = {"message": "saved csv to :" + args['<outfile>']}
-
-    if args["xml"]:
-        # saving xml 
-        helpers.save_xml(data, args['<outfile>'])
-        data = {"message": "saved xml to :" + args['<outfile>']}
-
-    # if there's a user message, print it otherwise dump the data
-    print(data.get("message") or json.dumps(data))
-
-
-if __name__ == '__main__':
-    main()
+    app()
+if __name__ == "__main__":
+    app()
