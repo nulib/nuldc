@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nuldc"
-version = "0.11.0"
+version = "0.122.0"
 description = ""
 authors = ["davidschober <davidschob@gmail.com>"]
 license = "MIT"

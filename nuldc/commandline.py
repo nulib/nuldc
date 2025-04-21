@@ -124,17 +124,19 @@ def xml(
 @app.callback(invoke_without_command=True)
 def callback(
     ctx: typer.Context,
-    version: bool = typer.Option(False, "--version", help="Show version and exit")
+    version: bool = typer.Option(
+        False, "--version", help="Show version and exit")
 ):
     """NULDC - Python helpers consuming the DCAPI."""
     if version:
         try:
-            v = metadata.version("nuldc")  
+            v = metadata.version("nuldc")
             typer.echo(f"NULDC Version: {v}")
             raise typer.Exit()
         except Exception:
             typer.echo("Version information not available")
             raise typer.Exit(1)
+
 
 def main():
     """NULDC - Python helpers consuming the DCAPI. Entry point"""
