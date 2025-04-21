@@ -27,7 +27,7 @@ def build_params(as_format, all_records, fields, exclude_fields):
 
     if fields:
         params["_source_includes"] = fields.split(",")
-        # If there's inlcude fields there shouldn't be excludes
+        # If there's include fields there shouldn't be excludes
         exclude_fields = None
     if exclude_fields:
         params["_source_excludes"] = exclude_fields.split(",")
