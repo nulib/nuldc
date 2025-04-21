@@ -97,7 +97,7 @@ def test_get_all_search_results(requests_mock, mock_dcapi):
     p1 = mock_dcapi("http://test.com/next")
     p2 = mock_dcapi("")
     requests_mock.get('http://test.com/next', json=p2)
-    result = get_all_search_results(p1, 2)
+    result = get_all_search_results(p1)
     assert len(result['data']) == 4
 
 
@@ -157,16 +157,10 @@ def test_normalize_format(mock_dcapi):
 
 def test_sort_fields_and_values(mock_dcapi):
     all_fields, all_values = sort_fields_and_values(mock_dcapi(''))
-    some_fields, some_values = sort_fields_and_values(
-        mock_dcapi(''), fields=['id', 'title'])
-
-    assert all([len(all_fields) == 4,
-                len(all_values[0]) == 4,
-                len(some_fields) == 2,
-                len(some_values[0]) == 2,
+    assert all([len(all_fields) == 5,
+                len(all_values[0]) == 5,
                 "parent" in all_fields,
-                "parent" not in some_fields,
                 # verify sort
-                ['id', 'list', 'parent', 'title'] == all_fields,
-                ['1', '1|2|3', 'parent1 label', '1 title'] == all_values[0]]
+                ['embedding', 'id', 'list', 'parent', 'title'] == all_fields,
+                ['[0.9, 0.8, 0.7, 0.6]','1', '1|2|3', 'parent1 label', '1 title'] == all_values[0]]
                )
