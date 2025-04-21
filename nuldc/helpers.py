@@ -77,8 +77,8 @@ def get_all_search_results(start_results):
             pbar.update(1)
         except Exception as e:
             print('error:', e)
-            print('current_results:', next_results)
-            print('errored on: ', session.get(next).url)
+            print('current_results:', next_results if next_results else 'No data retrieved')
+            print('errored on: ', next)
             sys.exit(1)
     pbar.close()
     # set next url to blank
