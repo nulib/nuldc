@@ -70,6 +70,7 @@ def get_all_search_results(start_results):
 
     # loop through the results
     while next_url:
+        next_results = None  # Initialize to avoid referencing an unassigned variable
         try:
             next_results = session.get(next_url).json()
             results['data'] = results['data'] + next_results.get('data')
