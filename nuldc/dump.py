@@ -72,7 +72,7 @@ def dump_collection(col_id):
                                           "works",
                                           params,
                                           all_results=True,
-                                          page_limit=5000)
+                                          )
         col_title = data['data'][0]['collection']['title']
         filename = f"{slugify(col_title)}-{col_id}"
         save_files(filename, data)
