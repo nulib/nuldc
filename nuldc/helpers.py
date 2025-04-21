@@ -93,7 +93,7 @@ def get_collection_by_id(api_base_url, identifier,
         count_params['as'] = 'opensearch'
         count_params['query'] = f'collection.id: {identifier}'
         url = f"{api_base_url}/search"
-        total_pages = session.get(url, count_params).json()[
+        total_pages = session.get(url, params=count_params).json()[
             'pagination']['total_pages']
         results = get_all_iiif(results, total_pages, page_limit)
 
@@ -184,7 +184,7 @@ def save_xml(opensearch_results, output_file):
     data = opensearch_results.get('data')
     data = [{key: value
              for (key, value) in sorted(d.items())
-             if key not in ignore_fields} for d in data]
+             } for d in data]
     opensearch_results['data'] = data
     xml = dicttoxml.dicttoxml(opensearch_results, attr_type=False)
 
@@ -209,11 +209,11 @@ def sort_fields_and_values(opensearch_results, fields=[]):
         # get only items not in ignore_fields and sort the dictionary
         data = [{key: normalize_format(value)
                  for (key, value) in sorted(d.items())
-                 if key not in ignore_fields} for d in data]
+                 } for d in data]
         fields = list(data[0])
         values = [list(d.values()) for d in data]
     else:
-        fields = ["no results"]
+        fields, values = ["no results"], ["no results"]
 
     return fields, values
 
