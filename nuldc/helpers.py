@@ -32,18 +32,18 @@ def get_all_iiif(start_manifest, total_pages, total_hits):
 
     if manifest.get('items')[-1].get('type') == 'Collection':
         # pop off the next
-        next = manifest['items'].pop().get('id')
+        next_url = manifest['items'].pop().get('id')
     else:
-        next = None
+        next_url = None
 
     pbar = tqdm.tqdm(total=total_pages, initial=1)
 
-    while next:
-        next_results = session.get(next).json()
+    while next_url:
+        next_results = session.get(next_url).json()
         if next_results.get('items')[-1].get('type') == 'Collection':
-            next = next_results['items'].pop().get('id')
+            next_url = next_results['items'].pop().get('id')
         else:
-            next = None
+            next_url = None
         pbar.update(1)
         manifest['items'] = manifest['items'] + next_results['items']
     pbar.close()
@@ -58,7 +58,7 @@ def get_all_search_results(start_results):
     results = start_results
     total_pages = results['pagination']['total_pages']
     total_hits = results['pagination']['total_hits']
-    next = results.get('pagination').get('next_url')
+    next_url = results.get('pagination').get('next_url')
 
     # stop if there's too many results and bail
     if total_hits > HIT_LIMIT:
@@ -69,16 +69,16 @@ def get_all_search_results(start_results):
     pbar = tqdm.tqdm(total=total_pages, initial=1)
 
     # loop through the results
-    while next:
+    while next_url:
         try:
-            next_results = session.get(next).json()
+            next_results = session.get(next_url).json()
             results['data'] = results['data'] + next_results.get('data')
-            next = next_results.get('pagination').get('next_url')
+            next_url = next_results.get('pagination').get('next_url')
             pbar.update(1)
         except Exception as e:
             print('error:', e)
             print('current_results:', next_results if next_results else 'No data retrieved')
-            print('errored on: ', next)
+            print('errored on: ', next_url)
             sys.exit(1)
     pbar.close()
     # set next url to blank

@@ -98,13 +98,14 @@ def search(
 @app.command()
 def csv(
     query: str,
+    model: str = model_option,
     outfile: str = typer.Argument(..., help="Output file"),
     fields: Optional[str] = fields_option,
     exclude_fields: str = exclude_fields_option,
     all_records: bool = all_records_option
 ):
     """Save search results as CSV."""
-    handle_search(query, "works", "csv", fields,
+    handle_search(query, model, "csv", fields,
                   exclude_fields, all_records, outfile)
 
 
