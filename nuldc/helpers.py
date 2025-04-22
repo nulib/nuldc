@@ -4,10 +4,10 @@ import urllib3
 import unicodecsv as csv
 import tqdm
 import dicttoxml
-
+import sys
 
 api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
-
+HIT_LIMIT = 49999
 # set retries for req
 retries = urllib3.Retry(total=5,
                         backoff_factor=1,
@@ -19,31 +19,31 @@ adapter = HTTPAdapter(max_retries=retries)
 session.mount('https://', adapter)
 
 
-def get_all_iiif(start_manifest, total_pages, page_limit):
+def get_all_iiif(start_manifest, total_pages, total_hits):
     """ takes items from a IIIF manifest and returns the next_page
     collection and items"""
 
     # check to see if there's too many pages, bail with message
-    if total_pages > page_limit:
-        return {'message':
-                f'{total_pages} pages! Let\'s keep it under {page_limit}.'}
+    if total_hits > HIT_LIMIT:
+        print(f'{total_hits} total results! The API can only return less than 50,000 at a time. Try breaking it up by collection')
+        sys.exit(1)
 
     manifest = start_manifest
 
     if manifest.get('items')[-1].get('type') == 'Collection':
         # pop off the next
-        next = manifest['items'].pop().get('id')
+        next_url = manifest['items'].pop().get('id')
     else:
-        next = None
+        next_url = None
 
     pbar = tqdm.tqdm(total=total_pages, initial=1)
 
-    while next:
-        next_results = session.get(next).json()
+    while next_url:
+        next_results = session.get(next_url).json()
         if next_results.get('items')[-1].get('type') == 'Collection':
-            next = next_results['items'].pop().get('id')
+            next_url = next_results['items'].pop().get('id')
         else:
-            next = None
+            next_url = None
         pbar.update(1)
         manifest['items'] = manifest['items'] + next_results['items']
     pbar.close()
@@ -51,28 +51,36 @@ def get_all_iiif(start_manifest, total_pages, page_limit):
     return manifest
 
 
-def get_all_search_results(start_results, page_limit):
+def get_all_search_results(start_results):
     """Pages through json responses and grabs the next results returns them all
     together"""
 
     results = start_results
     total_pages = results['pagination']['total_pages']
-    next = results.get('pagination').get('next_url')
+    total_hits = results['pagination']['total_hits']
+    next_url = results.get('pagination').get('next_url')
 
     # stop if there's too many results and bail
-    if total_pages > page_limit:
-        return {'message':
-                f'{total_pages} pages! Let\'s keep it under {page_limit}.'}
+    if total_hits > HIT_LIMIT:
+        print(f'{total_hits} total results! The API can only return less than 50,000 at a time. Try breaking it up by collection')
+        sys.exit(1)
 
     # add a progress bar when you get a lot of results
     pbar = tqdm.tqdm(total=total_pages, initial=1)
 
     # loop through the results
-    while next:
-        next_results = session.get(next).json()
-        results['data'] = results['data'] + next_results.get('data')
-        next = next_results.get('pagination').get('next_url')
-        pbar.update(1)
+    while next_url:
+        next_results = None  # Initialize to avoid referencing an unassigned variable
+        try:
+            next_results = session.get(next_url).json()
+            results['data'] = results['data'] + next_results.get('data')
+            next_url = next_results.get('pagination').get('next_url')
+            pbar.update(1)
+        except Exception as e:
+            print('error:', e)
+            print('current_results:', next_results if next_results else 'No data retrieved')
+            print('errored on: ', next_url)
+            sys.exit(1)
     pbar.close()
     # set next url to blank
     results['pagination']['next_url'] = ''
@@ -81,7 +89,7 @@ def get_all_search_results(start_results, page_limit):
 
 
 def get_collection_by_id(api_base_url, identifier,
-                         parameters, all_results=False, page_limit=1000):
+                         parameters, all_results=False):
     """returns a collection as IIIF or json"""
 
     url = f"{api_base_url}/collections/{identifier}"
@@ -93,9 +101,10 @@ def get_collection_by_id(api_base_url, identifier,
         count_params['as'] = 'opensearch'
         count_params['query'] = f'collection.id: {identifier}'
         url = f"{api_base_url}/search"
-        total_pages = session.get(url, count_params).json()[
-            'pagination']['total_pages']
-        results = get_all_iiif(results, total_pages, page_limit)
+        req_for_totals = session.get(url, params=count_params).json()
+        total_pages = req_for_totals['pagination']['total_pages']
+        total_hits = req_for_totals['pagination']['total_hits']
+        results = get_all_iiif(results, total_pages, total_hits)
 
     return results
 
@@ -121,7 +130,7 @@ def get_nested_field(field, source_dict):
 
 
 def get_search_results(api_base_url, model, parameters,
-                       all_results=False, page_limit=1000):
+                       all_results=False):
     """iterates through and grabs the search results. Sets a default pagelimit
     to 200"""
 
@@ -132,16 +141,17 @@ def get_search_results(api_base_url, model, parameters,
     if all_results and parameters.get('as') == 'iiif':
         count_params = parameters
         count_params['as'] = 'opensearch'
-        total_pages = session.get(url, count_params).json()[
-            'pagination']['total_pages']
-        search_results = get_all_iiif(search_results, total_pages, page_limit)
+        req_for_totals = session.get(url, params=count_params).json()
+        total_pages = req_for_totals['pagination']['total_pages']
+        total_hits = req_for_totals['pagination']['total_hits']
+        search_results = get_all_iiif(search_results, total_pages, total_hits)
     elif all_results:
-        search_results = get_all_search_results(search_results, page_limit)
+        search_results = get_all_search_results(search_results)
 
     return search_results
 
 
-def get_work_by_id(api_base_url, identifier, parameters):
+def get_work_by_id(api_base_url, identifier, parameters, **kwargs):
     """returns a work as IIIF or json"""
 
     url = f"{api_base_url}/works/{identifier}"
@@ -179,12 +189,11 @@ def save_xml(opensearch_results, output_file):
 
     # TODO DRY up this bit and sort_fields_and_values
 
-    ignore_fields = ['embedding', 'embedding_model']
     # massage the data and remove the embeddings
     data = opensearch_results.get('data')
     data = [{key: value
              for (key, value) in sorted(d.items())
-             if key not in ignore_fields} for d in data]
+             } for d in data]
     opensearch_results['data'] = data
     xml = dicttoxml.dicttoxml(opensearch_results, attr_type=False)
 
@@ -198,10 +207,9 @@ def sort_fields_and_values(opensearch_results, fields=[]):
     notation for digging deeper into metadta.
     """
 
-    ignore_fields = ['embedding', 'embedding_model']
     data = opensearch_results.get('data')
 
-    if fields:
+    if fields and data:
         # if fields are passed in, use them
         values = [[normalize_format(get_nested_field(f, i))
                    for f in fields] for i in data]
@@ -209,11 +217,11 @@ def sort_fields_and_values(opensearch_results, fields=[]):
         # get only items not in ignore_fields and sort the dictionary
         data = [{key: normalize_format(value)
                  for (key, value) in sorted(d.items())
-                 if key not in ignore_fields} for d in data]
+                 } for d in data]
         fields = list(data[0])
         values = [list(d.values()) for d in data]
     else:
-        fields = ["no results"]
+        fields, values = ["no results"], ["no results"]
 
     return fields, values
 

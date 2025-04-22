@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nuldc"
-version = "0.11.0"
+version = "0.12.0"
 description = ""
 authors = ["davidschober <davidschob@gmail.com>"]
 license = "MIT"
@@ -17,6 +17,7 @@ autopep8 = "^2.0.1"
 pytest = "^7.2.0"
 requests-mock = "^1.10.0"
 dicttoxml = "^1.7.16"
+typer = "^0.15.2"
 
 [tool.poetry.scripts]
 nuldc = 'nuldc.commandline:main'
