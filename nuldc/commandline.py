@@ -2,20 +2,16 @@ import typer
 from typing import Optional
 from nuldc import helpers
 import json
-from importlib import metadata
+from importlib import metadata # Corrected import name from previous subtasks if any
 
 app = typer.Typer()
 api_base_url = "https://api.dc.library.northwestern.edu/api/v2"
 
 # Define shared options once
-as_format_option = typer.Option(
-    "opensearch", "--as", help="Results format (opensearch, iiif)")
-model_option = typer.Option(
-    "works", "--model", help="Model (works, collections, filesets)")
-fields_option = typer.Option(
-    None, "--fields", help="Optional fields (id,ark,test)")
-exclude_fields_option = typer.Option(
-    "embedding*", "--exclude-fields", help="Fields to exclude")
+as_format_option = typer.Option("opensearch", "--as", help="Results format (opensearch, iiif)")
+model_option = typer.Option("works", "--model", help="Model (works, collections, filesets)") # Default to "works"
+fields_option = typer.Option(None, "--fields", help="Optional fields (id,ark,test)")
+exclude_fields_option = typer.Option("embedding*", "--exclude-fields", help="Fields to exclude")
 all_records_option = typer.Option(False, "--all", help="Get all records")
 
 
@@ -27,35 +23,28 @@ def build_params(as_format, all_records, fields, exclude_fields):
 
     if fields:
         params["_source_includes"] = fields.split(",")
-        # If there's include fields there shouldn't be excludes
         exclude_fields = None
     if exclude_fields:
         params["_source_excludes"] = exclude_fields.split(",")
-
     return params
 
 
 def handle_search(query, model, as_format, fields, exclude_fields, all_records, outfile=None):
     """Centralized search function with different output formats"""
-    # Build parameters
     params = build_params(as_format, all_records, fields, exclude_fields)
     params["query"] = query
 
-    # Get data
-    data = helpers.get_search_results(
-        api_base_url, model, params, all_results=all_records)
+    data = helpers.get_search_results(api_base_url, model, params, all_results=all_records)
 
-    # Handle different output formats
     if outfile and as_format == "csv":
-        headers, values = helpers.sort_fields_and_values(
-            data, fields.split(",") if fields else None)
+        headers, values = helpers.sort_fields_and_values(data, fields.split(",") if fields else None)
         helpers.save_as_csv(headers, values, outfile)
-        print(f"saved csv to : {outfile}")
+        typer.echo(f"saved csv to : {outfile}")
     elif outfile and as_format == "xml":
         helpers.save_xml(data, outfile)
-        print(f"saved xml to : {outfile}")
+        typer.echo(f"saved xml to : {outfile}")
     else:
-        print(json.dumps(data))
+        typer.echo(json.dumps(data))
 
 
 @app.command()
@@ -64,9 +53,9 @@ def works(
     as_format: str = as_format_option
 ):
     """Fetch a work by ID."""
-    params = build_params(as_format, False, None, None)
+    params = build_params(as_format, False, None, None) # all_records=False, no fields/exclude
     data = helpers.get_work_by_id(api_base_url, id, params)
-    print(json.dumps(data))
+    typer.echo(json.dumps(data))
 
 
 @app.command()
@@ -76,10 +65,9 @@ def collections(
     all_records: bool = all_records_option
 ):
     """Fetch collections by ID."""
-    params = build_params(as_format, all_records, None, None)
-    data = helpers.get_collection_by_id(
-        api_base_url, id, params, all_results=all_records)
-    print(json.dumps(data))
+    params = build_params(as_format, all_records, None, None) # no fields/exclude
+    data = helpers.get_collection_by_id(api_base_url, id, params, all_results=all_records)
+    typer.echo(json.dumps(data))
 
 
 @app.command()
@@ -105,38 +93,40 @@ def csv(
     all_records: bool = all_records_option
 ):
     """Save search results as CSV."""
-    handle_search(query, model, "csv", fields,
-                  exclude_fields, all_records, outfile)
+    handle_search(query, model, "csv", fields, exclude_fields, all_records, outfile)
 
 
 @app.command()
 def xml(
     query: str,
     outfile: str = typer.Argument(..., help="Output file"),
+    model: str = model_option, # Added model option here
     fields: Optional[str] = fields_option,
     exclude_fields: str = exclude_fields_option,
     all_records: bool = all_records_option
 ):
     """Save search results as XML."""
-    handle_search(query, "works", "xml", fields,
-                  exclude_fields, all_records, outfile)
+    # XML command implies "xml" format. It uses handle_search, so model is needed.
+    handle_search(query, model, "xml", fields, exclude_fields, all_records, outfile)
 
 
 @app.callback(invoke_without_command=True)
 def callback(
     ctx: typer.Context,
-    version: bool = typer.Option(
-        False, "--version", help="Show version and exit")
+    version: bool = typer.Option(False, "--version", help="Show version and exit")
 ):
     """NULDC - Python helpers consuming the DCAPI."""
     if version:
         try:
-            v = metadata.version("nuldc")
+            v = metadata.version("nuldc") # Use the specific package name
             typer.echo(f"NULDC Version: {v}")
-            raise typer.Exit()
-        except Exception:
+            raise typer.Exit(code=0) # Use code=0 for clean exit
+        except metadata.PackageNotFoundError: # More specific exception
             typer.echo("Version information not available")
-            raise typer.Exit(1)
+            raise typer.Exit(code=1)
+    elif ctx.invoked_subcommand is None:
+        # Show help if no command was provided (similar to --help)
+        typer.echo(ctx.get_help())
 
 
 def main():
