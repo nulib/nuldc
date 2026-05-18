@@ -83,6 +83,8 @@ specific fields you can do that as well.
 
 `nuldc csv "trains AND chicago" --all example.csv`
 
+Fields with role-qualified labels, such as contributors, use the role-aware label when the API returns one. For example, a contributor list may export as `Northwestern Community Ensemble (Contributor)|Pitts, Ronald E. (Donor)|Pitts, Ronald E. (Photographer)` instead of repeating the same bare contributor name for each role.
+
 Let's grab just a few fields. 
 
 `nuldc csv "trains AND chicago" --all --fields id,title,ark example.csv`
