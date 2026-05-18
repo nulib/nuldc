@@ -23,12 +23,24 @@ i   Pass in a 'next_url' if you want to fake a next page, otherwise pass in ''
                  "title": "1 title",
                  "parent": {"child": "child value1",
                             "label": "parent1 label"},
+                 "contributor": [
+                     {"label": "Pitts, Ronald E.",
+                      "label_with_role": "Pitts, Ronald E. (Donor)"},
+                     {"label": "Pitts, Ronald E.",
+                      "label_with_role": "Pitts, Ronald E. (Photographer)"}
+                 ],
                  "list": ["1", "2", "3"],
                  "embedding": [.9, .8, .7, .6]},
                 {"id": "2",
                  "title": "2 title",
                  "parent": {"child": "child value2",
                             "label": "parent1 label"},
+                 "contributor": [
+                     {"label": "Northwestern Community Ensemble",
+                      "label_with_role": (
+                          "Northwestern Community Ensemble (Contributor)"
+                      )}
+                 ],
                  "list": ["1", "2", "3"],
                  "embedding": [.9, .8, .7, .6]}
             ],
@@ -149,18 +161,35 @@ def test_get_collection_by_id(requests_mock):
 
 def test_normalize_format(mock_dcapi):
     data = mock_dcapi('')["data"]
+    expected_contributors = (
+        "Pitts, Ronald E. (Donor)|Pitts, Ronald E. (Photographer)"
+    )
     normalized_dict = normalize_format(data[0]["parent"])
+    normalized_role_dict = normalize_format(data[0]["contributor"][0])
+    normalized_role_list = normalize_format(data[0]["contributor"])
     normalized_list = normalize_format(data[0]["list"])
     assert all([normalized_dict == "parent1 label",
+                normalized_role_dict == "Pitts, Ronald E. (Donor)",
+                normalized_role_list == expected_contributors,
                 normalized_list == "1|2|3"])
 
 
 def test_sort_fields_and_values(mock_dcapi):
+    expected_contributors = (
+        "Pitts, Ronald E. (Donor)|Pitts, Ronald E. (Photographer)"
+    )
     all_fields, all_values = sort_fields_and_values(mock_dcapi(''))
-    assert all([len(all_fields) == 5,
-                len(all_values[0]) == 5,
+    some_fields, some_values = sort_fields_and_values(
+        mock_dcapi(''), fields=['contributor'])
+    assert all([len(all_fields) == 6,
+                len(all_values[0]) == 6,
                 "parent" in all_fields,
                 # verify sort
-                ['embedding', 'id', 'list', 'parent', 'title'] == all_fields,
-                ['[0.9, 0.8, 0.7, 0.6]','1', '1|2|3', 'parent1 label', '1 title'] == all_values[0]]
+                ['contributor', 'embedding', 'id', 'list', 'parent',
+                 'title'] == all_fields,
+                [expected_contributors, '[0.9, 0.8, 0.7, 0.6]',
+                 '1', '1|2|3', 'parent1 label',
+                 '1 title'] == all_values[0],
+                some_fields == ['contributor'],
+                some_values[0] == [expected_contributors]]
                )

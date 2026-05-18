@@ -25,7 +25,8 @@ def get_all_iiif(start_manifest, total_pages, total_hits):
 
     # check to see if there's too many pages, bail with message
     if total_hits > HIT_LIMIT:
-        print(f'{total_hits} total results! The API can only return less than 50,000 at a time. Try breaking it up by collection')
+        print(f'{total_hits} total results! The API can only return less '
+              'than 50,000 at a time. Try breaking it up by collection')
         sys.exit(1)
 
     manifest = start_manifest
@@ -62,7 +63,8 @@ def get_all_search_results(start_results):
 
     # stop if there's too many results and bail
     if total_hits > HIT_LIMIT:
-        print(f'{total_hits} total results! The API can only return less than 50,000 at a time. Try breaking it up by collection')
+        print(f'{total_hits} total results! The API can only return less '
+              'than 50,000 at a time. Try breaking it up by collection')
         sys.exit(1)
 
     # add a progress bar when you get a lot of results
@@ -70,7 +72,7 @@ def get_all_search_results(start_results):
 
     # loop through the results
     while next_url:
-        next_results = None  # Initialize to avoid referencing an unassigned variable
+        next_results = None
         try:
             next_results = session.get(next_url).json()
             results['data'] = results['data'] + next_results.get('data')
@@ -78,7 +80,10 @@ def get_all_search_results(start_results):
             pbar.update(1)
         except Exception as e:
             print('error:', e)
-            print('current_results:', next_results if next_results else 'No data retrieved')
+            current_results = (
+                next_results if next_results else 'No data retrieved'
+            )
+            print('current_results:', current_results)
             print('errored on: ', next_url)
             sys.exit(1)
     pbar.close()
@@ -161,12 +166,18 @@ def get_work_by_id(api_base_url, identifier, parameters, **kwargs):
 def normalize_format(field):
     """Normalizes the fields for CSV output. This will favor label"""
 
+    def display_value(value):
+        return value.get(
+            'label_with_role',
+            value.get('label', value.get('url', value.get('title', value)))
+        )
+
     if isinstance(field, dict):
-        # Try to get a label, fall back to URL, then Title
-        field = field.get('label', field.get('url', field.get('title', field)))
+        # Try to get a display label, fall back to URL, then Title
+        field = display_value(field)
     if isinstance(field, list) and all(isinstance(d, dict) for d in field):
-        # try to get a label fall back to the field. Concat everything
-        field = '|'.join([str(i.get('label', i)) for i in field])
+        # try to get a display label fall back to the field. Concat everything
+        field = '|'.join([str(display_value(i)) for i in field])
     if isinstance(field, list) and all(isinstance(i, str) for i in field):
         # join a list of strings pipes for readability
         field = '|'.join(field)
